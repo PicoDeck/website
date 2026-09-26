@@ -1,0 +1,10 @@
+:root { --bg: #ffffff; --fg: #1a1a1a; --muted: #555555; --link: #0b5cad; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111418; --fg: #e8e8e8; --muted: #a0a0a0; --link: #7ab8ff; }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+.wrap { max-width: 40rem; margin: 0 auto; padding: 3rem 16px; }
+.lede { color: var(--muted); font-size: 1.25rem; }
+.links { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; margin-top: 2rem; }
+a { color: var(--link); }
+.notes { white-space: pre-wrap; font: inherit; }

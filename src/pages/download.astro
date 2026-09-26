@@ -1,0 +1,28 @@
+---
+import release from '../data/release.json';
+const a = release.assets;
+const published = release.published ? new Date(release.published).toISOString().slice(0, 10) : '';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Download PicoDeck</title>
+    <link rel="stylesheet" href="/site.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <p><a href="/">PicoDeck</a></p>
+      <h1>Download {release.tag}</h1>
+      {published && <p>Released {published} · <a href={release.url}>release page</a></p>}
+      <ul>
+        <li><a href={a['picodeck.uf2']}>picodeck.uf2</a>: the firmware. Hold BOOTSEL while connecting USB, then copy the file to the drive that appears.</li>
+        {a['picodeck.sha256'] && <li><a href={a['picodeck.sha256']}>picodeck.sha256</a>: SHA-256 of the OTA image (picodeck.bin).</li>}
+        {a['picodeck-simulator-linux'] && <li><a href={a['picodeck-simulator-linux']}>picodeck-simulator-linux</a>: the desktop simulator (x86-64 Linux, SDL2).</li>}
+      </ul>
+      <h2>Release notes</h2>
+      <pre class="notes">{release.notes}</pre>
+    </main>
+  </body>
+</html>
