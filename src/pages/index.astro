@@ -1,26 +1,167 @@
 ---
+import Site from '../layouts/Site.astro';
+import Launcher from '../components/Launcher.astro';
 import release from '../data/release.json';
+
+// Highlighted with the launcher's category colours. Strings, because Astro reads { } in markup.
+const appJson = `{
+  <span class="tj">"name"</span>: <span class="ts">"Hello"</span>,
+  <span class="tj">"description"</span>: <span class="ts">"Says hello"</span>,
+  <span class="tj">"version"</span>: <span class="ts">"1.0"</span>,
+  <span class="tj">"category"</span>: <span class="ts">"demos"</span>
+}`;
+const mainLua = `<span class="tk">local</span> pc = picocalc
+
+<span class="tk">while</span> <span class="tk">true</span> <span class="tk">do</span>
+  pc.input.update()
+  <span class="tc">-- Esc returns to the launcher</span>
+  <span class="tk">if</span> pc.input.getButtonsPressed() &amp; pc.input.BTN_ESC ~= <span class="tn">0</span> <span class="tk">then</span>
+    <span class="tk">return</span>
+  <span class="tk">end</span>
+
+  pc.display.clear(pc.display.BLACK)
+  pc.display.drawText(<span class="tn">100</span>, <span class="tn">150</span>, <span class="ts">"Hello, World!"</span>, pc.display.WHITE)
+  pc.display.flush()
+  pc.sys.sleep(<span class="tn">16</span>)
+<span class="tk">end</span>`;
+
+const categories = [
+  ['games', 'Games', 'block.exe, C-Dogs, DOOM, Minesweeper, Neurogram, Snake'],
+  ['tools', 'Tools', 'Calculator, DOS/86, File Manager, PicoForge, Text Editor'],
+  ['system', 'System', 'App Store, Burn-In Fixer, System Update'],
+  ['demos', 'Demos', '3D Test, Guinea Pig Run, Platformer Demo'],
+  ['emulators', 'Emulators', 'Commodore 64, Game Boy Color, TIC-80'],
+  ['network', 'Network', 'LLM Chat, SSH, Wikipedia'],
+];
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PicoDeck</title>
-    <meta name="description" content="An operating system for the ClockworkPi PicoCalc: Lua and native apps, an app store, and a browser simulator." />
-    <link rel="stylesheet" href="/site.css" />
-  </head>
-  <body>
-    <main class="wrap">
-      <h1>PicoDeck</h1>
-      <p class="lede">An operating system for the ClockworkPi PicoCalc.</p>
-      <nav class="links" aria-label="Site">
-        <a href="/try/">Try it in your browser</a>
-        <a href="/docs/">Docs</a>
-        <a href="/download/">Download {release.tag}</a>
-        <a href="https://store.picodeck.net">App Store</a>
-        <a href="https://github.com/PicoDeck">GitHub</a>
-      </nav>
-    </main>
-  </body>
-</html>
+<Site title="PicoDeck">
+  <section class="hero pd-wrap">
+    <div>
+      <h1>An operating system for the PicoCalc</h1>
+      <p class="lede">PicoDeck gives the ClockworkPi PicoCalc a launcher, an App Store and a Lua&nbsp;5.4 runtime. Apps are folders on the SD card, and emulators and ports written in C run natively.</p>
+      <div class="pd-actions">
+        <a class="pd-btn pd-btn-primary" href="/try/">Try it in your browser</a>
+        <a class="pd-btn" href="#install">Download</a>
+      </div>
+      <p class="note">The browser version runs the launcher and Lua apps. Networking and native apps need a PicoCalc.</p>
+    </div>
+    <div class="screen">
+      <Launcher />
+      <p class="caption">The launcher, drawn in the device's own 6×8 font. Point at it, or click it and use the arrow keys.</p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="pd-wrap split">
+      <div class="split-text">
+        <h2 class="pd-heading">An app is a folder</h2>
+        <p class="band-lede">Put <code>app.json</code> and <code>main.lua</code> in a folder under <code>/apps/</code> on the SD card and the app appears in the launcher. There's nothing to compile and nothing to reflash.</p>
+        <p><a href="/docs/creating-your-first-app/">Write your first app</a></p>
+      </div>
+      <div class="files">
+        <figure class="pd-panel">
+          <figcaption class="pd-panel-title">/apps/hello/app.json</figcaption>
+          <pre class="pd-pre"><code set:html={appJson} /></pre>
+        </figure>
+        <figure class="pd-panel">
+          <figcaption class="pd-panel-title">/apps/hello/main.lua</figcaption>
+          <pre class="pd-pre"><code set:html={mainLua} /></pre>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="pd-wrap">
+      <h2 class="pd-heading">What runs on it</h2>
+      <p class="band-lede">Lua apps run in a sandboxed Lua 5.4 runtime. Emulators and ports written in C or C++ load as native apps. The launcher sorts everything into six categories.</p>
+      <ul class="cat-rows">
+        {categories.map(([id, name, apps]) => (
+          <li class={`pd-c-${id}`}><span class="pd-dot" /><span class="pd-label cat-name">{name}</span><span>{apps}</span></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band" id="install">
+    <div class="pd-wrap">
+      <h2 class="pd-heading">Install</h2>
+      <ol class="steps">
+        <li>
+          <span class="step-n" aria-hidden="true">1</span>
+          <h3 class="pd-subheading">Download</h3>
+          <p>Get <code>picodeck.uf2</code> from the {release.tag} release.</p>
+          <a class="pd-btn pd-btn-primary" href={release.assets['picodeck.uf2']}>Download picodeck.uf2</a>
+          <p class="note"><a href="/download/">Other files and release notes</a></p>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">2</span>
+          <h3 class="pd-subheading">Flash</h3>
+          <p>Hold BOOTSEL on the Pico while you connect USB, then copy <code>picodeck.uf2</code> to the drive that appears. It restarts into the launcher.</p>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">3</span>
+          <h3 class="pd-subheading">Add apps</h3>
+          <p>Open App Store on the device to install over Wi-Fi, or copy app folders into <code>/apps/</code> on the SD card.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+</Site>
+
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: center; padding-block: 72px 96px; }
+  .hero h1 { font-size: 48px; line-height: 56px; max-width: 14ch; }
+  .lede { margin-top: 28px; font-size: 20px; line-height: 1.5; max-width: 32em; }
+  .hero .pd-actions { margin-top: 36px; }
+  .note { margin-top: 20px; font-size: 15px; color: var(--pd-dim); max-width: 34em; }
+  .screen { margin: 18px; justify-self: start; }
+  .caption { margin-top: 34px; font-size: 15px; color: var(--pd-dim); max-width: 640px; }
+
+  .band { border-top: 2px solid var(--pd-rule); padding-block: 88px; }
+  .band-lede { margin-top: 20px; max-width: 36em; }
+  .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 72px; align-items: start; }
+  .split-text { position: sticky; top: calc(var(--pd-titlebar-h) + 48px); }
+  .split-text p + p { margin-top: 24px; }
+  .files { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .files figure { margin: 0; }
+  .files :global(.tk) { color: var(--pd-tools); }
+  .files :global(.ts) { color: var(--pd-network); }
+  .files :global(.tn) { color: var(--pd-demos); }
+  .files :global(.tc) { color: var(--pd-dim); }
+  .files :global(.tj) { color: var(--pd-all); }
+
+  .cat-rows { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 56px; }
+  .cat-rows li { display: grid; grid-template-columns: 14px 136px minmax(0, 1fr); column-gap: 16px; align-items: start; padding: 18px 0; border-top: 2px solid var(--pd-rule); }
+  .cat-rows li:nth-last-child(-n + 2) { border-bottom: 2px solid var(--pd-rule); }
+  .cat-rows .pd-dot { margin-top: 6px; }
+  .cat-name { line-height: 26px; color: var(--pd-c); }
+
+  .steps { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 56px; }
+  .step-n { display: block; font: 400 48px/48px var(--pd-pixel); -webkit-font-smoothing: none; color: var(--pd-all); }
+  .steps h3 { margin-top: 24px; }
+  .steps p { margin-top: 12px; max-width: 30em; }
+  .steps .pd-btn { margin-top: 24px; }
+
+  @media (max-width: 1399px) { .hero h1 { font-size: 40px; line-height: 48px; } }
+  @media (max-width: 1199px) {
+    .hero { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+    .hero h1 { max-width: 18ch; }
+    .split { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+    .split-text { position: static; }
+  }
+  @media (max-width: 899px) {
+    .cat-rows { grid-template-columns: minmax(0, 1fr); }
+    .cat-rows li:nth-last-child(2) { border-bottom: 0; }
+    .steps { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  }
+  @media (max-width: 719px) {
+    .hero { padding-block: 48px 64px; }
+    .hero h1 { font-size: 32px; line-height: 40px; }
+    .lede { font-size: 18px; }
+    .band { padding-block: 64px; }
+    .screen { margin: 9px; }
+    .cat-rows li { grid-template-columns: 14px minmax(0, 1fr); }
+    .cat-rows li > span:last-child { grid-column: 2; }
+  }
+</style>

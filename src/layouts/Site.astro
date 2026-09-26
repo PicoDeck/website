@@ -1,0 +1,56 @@
+---
+// Title bar and footer for picodeck.net's own pages. The store renders the same
+// markup (store repo, src/html/layout.ts) against the same /brand/v1/brand.css.
+import release from '../data/release.json';
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: 'download';
+}
+const {
+  title,
+  description = 'An operating system for the ClockworkPi PicoCalc: Lua and native apps, an app store, and a browser simulator.',
+  current,
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/brand/v1/picodeck-6x8.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/brand/v1/brand.css" />
+  </head>
+  <body class="pd-page">
+    <header class="pd-titlebar">
+      <div class="pd-wrap">
+        <a class="pd-brand" href="/">PicoDeck</a>
+        <nav class="pd-nav" aria-label="Site">
+          <a href="/try/">Try it</a>
+          <a href="/docs/">Docs</a>
+          <a href="https://store.picodeck.net/">Store</a>
+          <a class="pd-status" href="/download/" aria-current={current === 'download' ? 'page' : undefined}>{release.tag}</a>
+        </nav>
+      </div>
+    </header>
+    <main class="pd-main">
+      <slot />
+    </main>
+    <footer class="pd-footer">
+      <div class="pd-wrap">
+        <span class="pd-footer-note">PicoDeck {release.tag}</span>
+        <nav aria-label="Footer">
+          <a href="/docs/">Docs</a>
+          <a href="https://store.picodeck.net/">App Store</a>
+          <a href="/download/">Download</a>
+          <a href="https://github.com/PicoDeck">GitHub</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

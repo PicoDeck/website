@@ -1,0 +1,19 @@
+---
+// The site's title bar links, so the docs header reaches the same places as the
+// rest of picodeck.net, followed by Starlight's own social icons.
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+import release from '../../data/release.json';
+---
+<nav class="docs-nav" aria-label="Site">
+  <a href="/try/">Try it</a>
+  <a href="https://store.picodeck.net/">Store</a>
+  <a class="docs-status" href="/download/">{release.tag}</a>
+</nav>
+<Default />
+
+<style>
+  .docs-nav { display: flex; align-items: center; gap: 4px; margin-right: 8px; }
+  .docs-nav a { height: 36px; display: flex; align-items: center; padding: 0 10px; white-space: nowrap; font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; }
+  .docs-nav a:hover { background: var(--pd-btn-hover); }
+  .docs-nav .docs-status { color: var(--pd-ok); }
+</style>

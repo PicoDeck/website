@@ -1,0 +1,206 @@
+/* PicoDeck brand, v1. Shared by picodeck.net, /try/ and store.picodeck.net,
+   served from https://picodeck.net/brand/v1/brand.css.
+
+   v1 is additive-only: add tokens and pd- classes, never rename or remove them,
+   because the store links this file live. A breaking change goes in /brand/v2/.
+   test/brand.test.mjs lists the classes the store and site depend on.
+
+   Colours are what the PicoCalc LCD shows (RGB565) for the constants in the
+   firmware's launcher.c and ui_widgets.h. Dark only, like the device. */
+
+/* The device's built-in 6x8 font (picodeck/src/fonts/font_6x8.c, rebuilt by
+   scripts/build-pixel-font.py). 8px per em: use it at 16/24/32/40/48px only,
+   so every font pixel lands on whole CSS pixels. */
+@font-face { font-family: "PicoDeck 6x8"; src: url("picodeck-6x8.woff2") format("woff2"); font-display: block; }
+
+/* Atkinson Hyperlegible Next and Mono, OFL-1.1 (OFL-atkinson-hyperlegible.txt), latin subset. */
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 400; font-display: swap; src: url("atkinson-hyperlegible-next-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: italic; font-weight: 400; font-display: swap; src: url("atkinson-hyperlegible-next-latin-400-italic.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 700; font-display: swap; src: url("atkinson-hyperlegible-next-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Atkinson Hyperlegible Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("atkinson-hyperlegible-mono-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Atkinson Hyperlegible Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("atkinson-hyperlegible-mono-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  color-scheme: dark;
+  --pd-navy: #101439;        /* C_HEADER_BG: title, tab and footer bars */
+  --pd-navy-deep: #080c19;   /* C_TITLE_BG: dialog title bars */
+  --pd-rule: #393c63;        /* C_BORDER */
+  --pd-select: #2951a4;      /* C_SEL_BG: the selection bar, primary actions */
+  --pd-select-hover: #3461bf;
+  --pd-tab: #293c7b;         /* TAB_SEL_BG */
+  --pd-text: #fff;
+  --pd-dim: #848284;         /* COLOR_GRAY */
+  --pd-dim-on-select: #c9d3f0;
+  --pd-field: #000810;       /* UW_BG_INPUT */
+  --pd-field-edge: #526594;  /* UW_BORDER */
+  --pd-focus: #638ede;       /* UW_FOCUS */
+  --pd-btn: #192842;         /* UW_BTN_BG */
+  --pd-btn-hover: #293d63;   /* UW_BTN_FOCUS */
+  --pd-ok: #00ff00;          /* COLOR_GREEN: status readouts */
+  --pd-warn: #ffcb31;
+  --pd-error: #ff6531;
+  /* Launcher category colours (s_tab_colors) */
+  --pd-all: #8ca2ff;
+  --pd-games: #ff6531;
+  --pd-tools: #63b6ff;
+  --pd-system: #a5a2a5;
+  --pd-demos: #ffcb31;
+  --pd-emulators: #9465ff;
+  --pd-network: #31cb94;
+  --pd-pixel: "PicoDeck 6x8", ui-monospace, monospace;
+  --pd-sans: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --pd-mono: "Atkinson Hyperlegible Mono", ui-monospace, monospace;
+  --pd-gutter: 32px;
+  --pd-titlebar-h: 56px;
+}
+@media (max-width: 719px) { :root { --pd-gutter: 16px; } }
+
+.pd-c-all { --pd-c: var(--pd-all); }
+.pd-c-games { --pd-c: var(--pd-games); }
+.pd-c-tools { --pd-c: var(--pd-tools); }
+.pd-c-system { --pd-c: var(--pd-system); }
+.pd-c-demos { --pd-c: var(--pd-demos); }
+.pd-c-emulators { --pd-c: var(--pd-emulators); }
+.pd-c-network { --pd-c: var(--pd-network); }
+
+/* ── Page base: opt in with <body class="pd-page">. :where() keeps these at
+   zero specificity so any pd- component (or site rule) wins. ─────────────── */
+html:has(> .pd-page) { background: #000; scroll-padding-top: calc(var(--pd-titlebar-h) + 24px); scrollbar-gutter: stable; }
+.pd-page { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: #000; color: var(--pd-text); font: 400 17px/1.55 var(--pd-sans); -webkit-text-size-adjust: 100%; }
+:where(.pd-page), :where(.pd-page) *, :where(.pd-page) ::before, :where(.pd-page) ::after { box-sizing: border-box; }
+:where(.pd-page) :is(h1, h2, h3, h4) { margin: 0; font-family: var(--pd-pixel); font-weight: 400; font-synthesis: none; -webkit-font-smoothing: none; letter-spacing: 0; text-wrap: balance; }
+:where(.pd-page) p { margin: 0; }
+:where(.pd-page) a { color: var(--pd-all); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+:where(.pd-page) a:hover { color: #fff; }
+:where(.pd-page) code { font: 500 0.9em var(--pd-mono); color: #fff; background: var(--pd-navy); padding: 1px 6px; }
+:where(.pd-page) pre code { font: inherit; background: none; padding: 0; }
+:where(.pd-page) strong { font-weight: 700; }
+:where(.pd-page) :focus-visible { outline: 2px solid var(--pd-focus); outline-offset: 2px; }
+:where(.pd-page) ::selection { background: var(--pd-select); color: #fff; }
+
+/* ── Type ─────────────────────────────────────────────────────────────── */
+.pd-px { font-family: var(--pd-pixel); font-weight: 400; font-synthesis: none; -webkit-font-smoothing: none; letter-spacing: 0; }
+.pd-title { font: 400 40px/48px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-heading { font: 400 32px/40px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-subheading { font: 400 24px/32px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-label { font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-dim { color: var(--pd-dim); }
+.pd-small { font-size: 15px; line-height: 1.5; }
+@media (max-width: 719px) { .pd-title { font-size: 32px; line-height: 40px; } }
+.pd-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+.pd-wrap { width: 100%; max-width: 1320px; margin: 0 auto; padding: 0 var(--pd-gutter); }
+.pd-main { flex: 1; }
+
+/* ── Title bar: the launcher's header ─────────────────────────────────── */
+.pd-titlebar { position: sticky; top: 0; z-index: 10; background: var(--pd-navy); border-bottom: 2px solid var(--pd-rule); }
+.pd-titlebar > .pd-wrap { height: var(--pd-titlebar-h); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pd-brand { flex: none; padding: 8px 0; font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; }
+.pd-brand:hover { color: #fff; }
+.pd-nav { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.pd-nav a { flex: none; height: 40px; display: flex; align-items: center; padding: 0 12px; white-space: nowrap; font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; }
+.pd-nav a:hover { background: var(--pd-btn-hover); color: #fff; }
+.pd-nav a[aria-current="page"] { background: var(--pd-tab); box-shadow: inset 0 -4px 0 var(--pd-all); }
+.pd-nav a.pd-status { margin-left: 8px; color: var(--pd-ok); }
+@media (max-width: 719px) {
+  .pd-nav a { padding: 0 8px; }
+  .pd-nav a.pd-status { display: none; }
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.pd-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.pd-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 20px;
+  font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; white-space: nowrap; cursor: pointer;
+  background: var(--pd-btn); border: 2px solid var(--pd-field-edge); border-radius: 0;
+}
+.pd-btn:hover { background: var(--pd-btn-hover); border-color: var(--pd-focus); color: #fff; }
+.pd-btn-primary { background: var(--pd-select); border-color: var(--pd-select); }
+.pd-btn-primary:hover { background: var(--pd-select-hover); border-color: var(--pd-select-hover); }
+.pd-btn-small { min-height: 36px; padding: 0 12px; }
+.pd-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ── Tabs: the launcher's category bar ────────────────────────────────── */
+.pd-tabbar { background: var(--pd-navy); border-block: 2px solid var(--pd-rule); }
+.pd-tabbar > .pd-wrap { min-height: 56px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 6px; }
+.pd-tabs { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.pd-tab {
+  flex: none; height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 10px;
+  font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; cursor: pointer;
+  background: none; border: 0; border-radius: 0;
+}
+.pd-tab:hover { background: var(--pd-btn-hover); color: #fff; }
+.pd-tab:is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]) { background: var(--pd-tab); box-shadow: inset 0 -4px 0 var(--pd-c, var(--pd-all)); }
+.pd-tab:disabled { opacity: 0.45; cursor: default; background: none; }
+.pd-count { color: var(--pd-dim); }
+.pd-tab:is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]) .pd-count { color: var(--pd-dim-on-select); }
+/* Like the device: under 1100px only the selected tab keeps its label. */
+@media (max-width: 1099px) {
+  .pd-tabs-collapse .pd-tab:not([aria-selected="true"], [aria-pressed="true"]):has(.pd-dot) { padding: 0 9px; }
+  .pd-tabs-collapse .pd-tab:not([aria-selected="true"], [aria-pressed="true"]):has(.pd-dot) :is(.pd-tab-label, .pd-count) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
+
+/* The 7x7 pixel circle fill_circle(r=3) draws for a category dot. */
+.pd-dot {
+  flex: none; display: inline-block; width: 14px; height: 14px; background: var(--pd-c, var(--pd-all));
+  clip-path: polygon(28.6% 0, 71.4% 0, 71.4% 14.3%, 85.7% 14.3%, 85.7% 28.6%, 100% 28.6%, 100% 71.4%, 85.7% 71.4%, 85.7% 85.7%, 71.4% 85.7%, 71.4% 100%, 28.6% 100%, 28.6% 85.7%, 14.3% 85.7%, 14.3% 71.4%, 0 71.4%, 0 28.6%, 14.3% 28.6%, 14.3% 14.3%, 28.6% 14.3%);
+}
+
+/* ── Fields ───────────────────────────────────────────────────────────── */
+.pd-field {
+  height: 40px; padding: 0 12px; border-radius: 0;
+  font: 400 16px var(--pd-sans); color: #fff; background: var(--pd-field); border: 2px solid var(--pd-field-edge);
+}
+.pd-field::placeholder { color: var(--pd-dim); }
+.pd-field:focus { border-color: var(--pd-focus); }
+select.pd-field {
+  appearance: none; padding-right: 36px; cursor: pointer;
+  background: var(--pd-field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M0 0h5v1H4v1H3v1H2V2H1V1H0z'/%3E%3C/svg%3E") no-repeat right 12px center / 10px 6px;
+}
+
+/* ── Icon tile: the launcher's 20x20 app icon, at 2x ──────────────────── */
+.pd-icon {
+  flex: none; width: 40px; height: 40px; display: grid; place-items: center; object-fit: cover;
+  background: var(--pd-c, var(--pd-system)); color: #fff; font: 400 16px/16px var(--pd-pixel); -webkit-font-smoothing: none;
+}
+img.pd-icon { background: var(--pd-navy); }
+.pd-icon-lg { width: 80px; height: 80px; font-size: 32px; line-height: 32px; }
+
+/* ── App rows: the launcher list. Hover and focus are the selection bar. ─ */
+.pd-list { list-style: none; margin: 0; padding: 0; }
+.pd-row { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; column-gap: 16px; align-items: center; padding: 10px 16px 10px 12px; }
+.pd-row > .pd-icon { grid-row: 1 / 3; }
+.pd-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-row-name a { color: #fff; text-decoration: none; }
+.pd-row-name a::after { content: ""; position: absolute; inset: 0; } /* the whole row is the link */
+.pd-row-meta { font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; color: var(--pd-dim); text-align: right; }
+.pd-row-desc { min-width: 0; font-size: 15px; line-height: 22px; color: var(--pd-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pd-row-aside { font-size: 15px; line-height: 22px; color: var(--pd-dim); text-align: right; white-space: nowrap; }
+.pd-row:is(:hover, :focus-within, [aria-selected="true"]) { background: var(--pd-select); }
+.pd-row:is(:hover, :focus-within, [aria-selected="true"]) :is(.pd-row-meta, .pd-row-desc, .pd-row-aside) { color: var(--pd-dim-on-select); }
+.pd-row:has(a:focus-visible) { outline: 2px solid var(--pd-focus); outline-offset: -2px; }
+.pd-row a:focus-visible { outline: none; }
+
+/* ── Panels: a dialog with a title bar ────────────────────────────────── */
+.pd-panel { border: 2px solid var(--pd-rule); background: #000; }
+.pd-panel-title { min-height: 48px; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: var(--pd-navy-deep); border-bottom: 2px solid var(--pd-rule); font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-panel-body { padding: 20px; }
+.pd-note { padding: 20px; background: var(--pd-navy-deep); border: 2px solid var(--pd-rule); }
+.pd-note > * + * { margin-top: 8px; }
+.pd-pre { margin: 0; padding: 20px; overflow-x: auto; font: 400 15px/1.6 var(--pd-mono); color: #fff; background: #000; tab-size: 2; }
+.pd-panel > .pd-pre { border: 0; }
+:not(.pd-panel) > .pd-pre { border: 2px solid var(--pd-rule); }
+
+/* ── Key hints: the launcher's footer bar ─────────────────────────────── */
+.pd-hints { position: sticky; bottom: 0; z-index: 5; background: var(--pd-navy); border-top: 2px solid var(--pd-rule); }
+.pd-hints > .pd-wrap { height: 40px; display: flex; align-items: center; overflow: hidden; white-space: pre; font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; }
+@media (hover: none), (max-width: 719px) { .pd-hints { display: none; } }
+
+/* ── Site footer ──────────────────────────────────────────────────────── */
+.pd-footer { margin-top: auto; background: var(--pd-navy); border-top: 2px solid var(--pd-rule); }
+.pd-footer > .pd-wrap { min-height: 56px; padding-block: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; }
+.pd-footer-note { color: var(--pd-dim); }
+.pd-footer nav { display: flex; flex-wrap: wrap; gap: 4px 24px; }
+.pd-footer a { color: #fff; text-decoration: none; }
+.pd-footer a:hover { color: #fff; text-decoration: underline; }

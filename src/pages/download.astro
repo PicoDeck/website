@@ -1,28 +1,63 @@
 ---
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
+import Site from '../layouts/Site.astro';
 import release from '../data/release.json';
-const a = release.assets;
-const published = release.published ? new Date(release.published).toISOString().slice(0, 10) : '';
+
+const assets: Record<string, string> = release.assets;
+const published = release.published
+  ? new Date(release.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  : '';
+const files = [
+  ['picodeck.uf2', 'The firmware. Hold BOOTSEL while connecting USB, then copy the file to the drive that appears.'],
+  ['picodeck.sha256', 'SHA-256 of the OTA image (picodeck.bin).'],
+  ['picodeck-simulator-linux', 'The desktop simulator (x86-64 Linux, SDL2).'],
+].filter(([name]) => assets[name]);
+
+// The notes open with their own "# PicoDeck vX" heading; this page already has one.
+const markdown = await createMarkdownProcessor();
+const { code: notes } = await markdown.render((release.notes ?? '').replace(/^#\s[^\n]*\n+/, ''));
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Download PicoDeck</title>
-    <link rel="stylesheet" href="/site.css" />
-  </head>
-  <body>
-    <main class="wrap">
-      <p><a href="/">PicoDeck</a></p>
-      <h1>Download {release.tag}</h1>
-      {published && <p>Released {published} · <a href={release.url}>release page</a></p>}
-      <ul>
-        <li><a href={a['picodeck.uf2']}>picodeck.uf2</a>: the firmware. Hold BOOTSEL while connecting USB, then copy the file to the drive that appears.</li>
-        {a['picodeck.sha256'] && <li><a href={a['picodeck.sha256']}>picodeck.sha256</a>: SHA-256 of the OTA image (picodeck.bin).</li>}
-        {a['picodeck-simulator-linux'] && <li><a href={a['picodeck-simulator-linux']}>picodeck-simulator-linux</a>: the desktop simulator (x86-64 Linux, SDL2).</li>}
-      </ul>
-      <h2>Release notes</h2>
-      <pre class="notes">{release.notes}</pre>
-    </main>
-  </body>
-</html>
+<Site title={`Download PicoDeck ${release.tag}`} current="download">
+  <div class="pd-wrap page">
+    <h1 class="pd-title">Download {release.tag}</h1>
+    {published && <p class="meta">Released {published}. <a href={release.url}>Release page on GitHub</a></p>}
+
+    <div class="grid">
+      <section class="pd-panel" aria-labelledby="files">
+        <h2 class="pd-panel-title" id="files">Files</h2>
+        <ul class="files">
+          {files.map(([name, about], i) => (
+            <li>
+              <div><span class="pd-label">{name}</span><p>{about}</p></div>
+              <a class={i === 0 ? 'pd-btn pd-btn-primary' : 'pd-btn'} href={assets[name]}>Download<span class="pd-sr-only"> {name}</span></a>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section class="pd-panel" aria-labelledby="notes">
+        <h2 class="pd-panel-title" id="notes">Release notes</h2>
+        <div class="pd-panel-body notes" set:html={notes} />
+      </section>
+    </div>
+  </div>
+</Site>
+
+<style>
+  .page { padding-block: 56px 88px; }
+  .meta { margin-top: 12px; color: var(--pd-dim); }
+  .grid { display: grid; gap: 32px; max-width: 880px; margin-top: 40px; }
+  .files { list-style: none; margin: 0; padding: 0; }
+  .files li { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px; }
+  .files li + li { border-top: 2px solid var(--pd-rule); }
+  .files p { margin-top: 6px; font-size: 15px; color: var(--pd-dim); }
+  .notes :global(> * + *) { margin-top: 16px; }
+  .notes :global(h2) { margin-top: 32px; font: 400 24px/32px var(--pd-pixel); -webkit-font-smoothing: none; }
+  .notes :global(h3) { margin-top: 24px; font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; }
+  .notes :global(ul) { padding-left: 24px; }
+  .notes :global(li + li) { margin-top: 8px; }
+  .notes :global(code) { overflow-wrap: anywhere; }
+  @media (max-width: 719px) {
+    .page { padding-block: 32px 64px; }
+    .files li { flex-direction: column; align-items: stretch; }
+  }
+</style>

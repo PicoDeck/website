@@ -19,6 +19,17 @@ export default defineConfig({
       title: 'PicoDeck',
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/PicoDeck/picodeck' }],
       sidebar,
+      // The shared PicoDeck look (public/brand/v1), dark only like the device.
+      head: [
+        { tag: 'link', attrs: { rel: 'preload', href: '/brand/v1/picodeck-6x8.woff2', as: 'font', type: 'font/woff2', crossorigin: '' } },
+        { tag: 'link', attrs: { rel: 'stylesheet', href: '/brand/v1/brand.css' } },
+      ],
+      customCss: ['./src/styles/docs.css'],
+      components: {
+        ThemeProvider: './src/components/starlight/ThemeProvider.astro',
+        ThemeSelect: './src/components/starlight/ThemeSelect.astro',
+        SocialIcons: './src/components/starlight/SocialIcons.astro',
+      },
     }),
   ],
 });

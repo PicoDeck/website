@@ -1,0 +1,8 @@
+---
+// PicoDeck is dark only, like the device: pin Starlight's theme instead of reading
+// localStorage or prefers-color-scheme. updatePickers is a no-op (no ThemeSelect).
+---
+<script is:inline>
+  document.documentElement.dataset.theme = 'dark';
+  window.StarlightThemeProvider = { updatePickers() {} };
+</script>

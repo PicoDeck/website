@@ -1,0 +1,130 @@
+---
+// A working replica of the PicoDeck launcher at 2x (1x on phones), drawn with the
+// device's font and colours. ↑↓ select, ←→ change category, Enter opens the simulator.
+import apps from '../data/launcher-apps.json';
+import { sortApps, tabsHtml, rowsHtml, thumb } from '../lib/launcher.mjs';
+
+const items = sortApps(apps);
+const t = thumb(items.length, 0);
+---
+<div class="lcd" data-lcd tabindex="0" role="group" aria-roledescription="launcher preview"
+  aria-label="PicoDeck launcher. Up and down select an app, left and right change category, Enter opens the browser simulator.">
+  <div class="lcd-head"><span>PicoDeck</span><span class="lcd-ok">WiFi  Bat:100%</span></div>
+  <div class="lcd-tabs" set:html={tabsHtml(0)} />
+  <div class="lcd-list"><ul class="lcd-rows" set:html={rowsHtml(items, 0)} /></div>
+  <div class="lcd-scroll"><div class="lcd-thumb" style={`height:calc(${t.height} * var(--px));top:calc(${t.top} * var(--px))`} /></div>
+  <div class="lcd-foot">L/R:Category  Enter:Launch  F10:Menu</div>
+</div>
+<p class="pd-sr-only" aria-live="polite" data-lcd-live></p>
+
+<script>
+  import apps from '../data/launcher-apps.json';
+  import { CATS, CAT_NAMES, VISIBLE_ROWS, sortApps, inTab, tabsHtml, rowsHtml, thumb } from '../lib/launcher.mjs';
+
+  const all = sortApps(apps);
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-lcd]')) {
+    const tabsEl = el.querySelector<HTMLElement>('.lcd-tabs')!;
+    const rowsEl = el.querySelector<HTMLElement>('.lcd-rows')!;
+    const thumbEl = el.querySelector<HTMLElement>('.lcd-thumb')!;
+    const live = el.nextElementSibling as HTMLElement;
+    let tab = 0, sel = 0, scroll = 0;
+
+    const render = () => {
+      const items = inTab(all, tab);
+      tabsEl.innerHTML = tabsHtml(tab);
+      rowsEl.innerHTML = rowsHtml(items, sel);
+      rowsEl.style.setProperty('--scroll', String(scroll));
+      const t = thumb(items.length, scroll);
+      thumbEl.style.height = `calc(${t.height} * var(--px))`;
+      thumbEl.style.top = `calc(${t.top} * var(--px))`;
+      // Like the device, the selected row's description scrolls when it doesn't fit.
+      const desc = rowsEl.querySelector<HTMLElement>('.sel .lcd-desc');
+      const text = desc?.firstElementChild as HTMLElement | undefined;
+      const over = desc && text ? text.scrollWidth - desc.clientWidth : 0;
+      if (text && over > 0 && !reduceMotion.matches) {
+        text.style.setProperty('--shift', `${-over}px`);
+        text.style.animation = `lcd-marquee ${(2 + over / 30).toFixed(1)}s linear .6s infinite alternate`;
+      }
+    };
+    const move = (d: number) => {
+      const items = inTab(all, tab);
+      sel = Math.max(0, Math.min(items.length - 1, sel + d));
+      if (sel < scroll) scroll = sel;
+      if (sel > scroll + VISIBLE_ROWS - 1) scroll = sel - VISIBLE_ROWS + 1;
+      render();
+      live.textContent = items[sel].name;
+    };
+    const setTab = (d: number) => {
+      tab = (tab + d + CATS.length) % CATS.length;
+      sel = scroll = 0;
+      render();
+      live.textContent = `${CAT_NAMES[CATS[tab] as keyof typeof CAT_NAMES]}: ${inTab(all, tab).length} apps`;
+    };
+    const launch = () => { location.href = '/try/'; };
+
+    el.addEventListener('keydown', (e) => {
+      const keys: Record<string, () => void> = {
+        ArrowUp: () => move(-1), ArrowDown: () => move(1),
+        ArrowLeft: () => setTab(-1), ArrowRight: () => setTab(1), Enter: launch,
+      };
+      if (!keys[e.key]) return;
+      e.preventDefault();
+      keys[e.key]();
+    });
+    rowsEl.addEventListener('pointermove', (e) => {
+      const row = (e.target as HTMLElement).closest<HTMLElement>('.lcd-row');
+      if (row && Number(row.dataset.i) !== sel) { sel = Number(row.dataset.i); render(); }
+    });
+    rowsEl.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('.lcd-row')) launch(); });
+    render();
+  }
+</script>
+
+<style is:global>
+  /* Global because rows are redrawn by the script. All geometry is in device pixels × --px. */
+  .lcd {
+    --px: 2px;
+    position: relative; width: calc(320 * var(--px)); height: calc(320 * var(--px)); overflow: hidden;
+    background: #000; color: #fff; font-family: var(--pd-pixel); font-size: calc(8 * var(--px)); line-height: calc(8 * var(--px));
+    -webkit-font-smoothing: none; white-space: nowrap; user-select: none; -webkit-user-select: none; cursor: default;
+    box-shadow: 0 0 0 2px var(--pd-rule), 0 0 0 16px var(--pd-navy-deep), 0 0 0 18px var(--pd-rule);
+  }
+  .lcd:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--pd-rule), 0 0 0 16px var(--pd-navy-deep), 0 0 0 18px var(--pd-focus); }
+  .lcd > * { position: absolute; left: 0; right: 0; }
+  .lcd-head {
+    top: 0; height: calc(29 * var(--px)); padding: 0 calc(8 * var(--px));
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--pd-navy); border-bottom: var(--px) solid var(--pd-rule);
+  }
+  .lcd-ok { color: var(--pd-ok); white-space: pre; }
+  .lcd-tabs {
+    top: calc(29 * var(--px)); height: calc(19 * var(--px));
+    display: flex; align-items: center; justify-content: center; gap: calc(2 * var(--px));
+    background: var(--pd-navy); border-bottom: var(--px) solid var(--pd-rule);
+  }
+  .lcd-tab { height: calc(16 * var(--px)); padding: 0 calc(6 * var(--px)); display: flex; align-items: center; background: var(--pd-tab); box-shadow: inset 0 calc(-3 * var(--px)) 0 var(--pd-c); }
+  .lcd-dot { width: calc(14 * var(--px)); display: grid; place-items: center; }
+  .lcd-dot .pd-dot { width: calc(7 * var(--px)); height: calc(7 * var(--px)); }
+  .lcd-list { top: calc(48 * var(--px)); height: calc(252 * var(--px)); overflow: hidden; }
+  .lcd-rows { margin: 0; padding: 0; list-style: none; transform: translateY(calc(var(--scroll, 0) * -28 * var(--px))); }
+  .lcd-row { position: relative; height: calc(28 * var(--px)); }
+  .lcd-row.sel::before { content: ""; position: absolute; left: calc(4 * var(--px)); right: calc(6 * var(--px)); top: 0; height: calc(26 * var(--px)); background: var(--pd-select); }
+  .lcd-row > span { position: absolute; }
+  .lcd-icon { left: calc(8 * var(--px)); top: calc(3 * var(--px)); width: calc(20 * var(--px)); height: calc(20 * var(--px)); display: grid; place-items: center; background: var(--pd-c); }
+  .lcd-name { left: calc(32 * var(--px)); top: calc(4 * var(--px)); }
+  .lcd-ver { right: calc(8 * var(--px)); top: calc(4 * var(--px)); }
+  .lcd-desc { left: calc(32 * var(--px)); right: calc(6 * var(--px)); top: calc(15 * var(--px)); overflow: hidden; color: var(--pd-dim); }
+  .lcd-desc > span { display: inline-block; }
+  .lcd-row.sel .lcd-desc { color: var(--pd-dim-on-select); }
+  @keyframes lcd-marquee { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(var(--shift)); } }
+  .lcd-scroll { left: calc(314 * var(--px)); right: auto; width: calc(4 * var(--px)); top: calc(48 * var(--px)); height: calc(252 * var(--px)); background: var(--pd-rule); }
+  .lcd-thumb { position: absolute; left: 0; right: 0; background: #fff; }
+  .lcd-foot { top: calc(302 * var(--px)); height: calc(18 * var(--px)); padding-left: calc(8 * var(--px)); display: flex; align-items: center; white-space: pre; background: var(--pd-navy); border-top: var(--px) solid var(--pd-rule); }
+  @media (max-width: 719px) {
+    .lcd { --px: 1px; box-shadow: 0 0 0 1px var(--pd-rule), 0 0 0 8px var(--pd-navy-deep), 0 0 0 9px var(--pd-rule); }
+    .lcd:focus-visible { box-shadow: 0 0 0 1px var(--pd-rule), 0 0 0 8px var(--pd-navy-deep), 0 0 0 9px var(--pd-focus); }
+  }
+  @media (prefers-reduced-motion: reduce) { .lcd-desc > span { animation: none !important; } }
+</style>

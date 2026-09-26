@@ -1,0 +1,42 @@
+/* Starlight in the PicoDeck look. Tokens and fonts come from /brand/v1/brand.css,
+   linked in the docs <head> (astro.config.mjs). Unlayered, so it beats Starlight's layers. */
+:root,
+:root[data-theme='dark'] {
+  --sl-color-white: #fff;
+  --sl-color-gray-1: #eef0f8;
+  --sl-color-gray-2: #d6d9e6;
+  --sl-color-gray-3: var(--pd-dim);
+  --sl-color-gray-4: var(--pd-field-edge);
+  --sl-color-gray-5: var(--pd-rule);
+  --sl-color-gray-6: var(--pd-navy);
+  --sl-color-black: #000;
+  --sl-color-accent-low: var(--pd-tab);
+  --sl-color-accent: var(--pd-select);
+  --sl-color-accent-high: var(--pd-all);
+  --sl-color-text-accent: var(--pd-all);
+  --sl-color-text-invert: #000;
+  --sl-color-bg: #000;
+  --sl-color-bg-nav: var(--pd-navy);
+  --sl-color-bg-sidebar: #000;
+  --sl-color-bg-inline-code: var(--pd-navy);
+  --sl-color-hairline-light: var(--pd-rule);
+  --sl-color-hairline: var(--pd-rule);
+  --sl-color-hairline-shade: #000;
+  --sl-font: var(--pd-sans);
+  --sl-font-mono: var(--pd-mono);
+}
+
+/* The launcher's title bar and selection bar */
+header.header { border-bottom: 2px solid var(--pd-rule); }
+.site-title { font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; }
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus { background: var(--pd-select); color: #fff; }
+
+/* Pixel headings, at whole multiples of the 8px font */
+:is(h1#_top, .sl-markdown-content :is(h2, h3, h4)) { font-family: var(--pd-pixel); font-weight: 400; letter-spacing: 0; -webkit-font-smoothing: none; }
+h1#_top { font-size: 40px; line-height: 48px; }
+.sl-markdown-content h2 { font-size: 32px; line-height: 40px; }
+.sl-markdown-content h3 { font-size: 24px; line-height: 32px; }
+.sl-markdown-content h4 { font-size: 16px; line-height: 24px; }
+@media (max-width: 719px) { h1#_top { font-size: 32px; line-height: 40px; } }

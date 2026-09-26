@@ -1,2 +1,8 @@
 /try/*
   Cache-Control: public, max-age=300, must-revalidate
+
+# The shared look: store.picodeck.net links brand.css live. Fonts load cross-origin
+# only with CORS. Short cache so a website deploy restyles the store within minutes.
+/brand/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300, must-revalidate

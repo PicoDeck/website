@@ -19,3 +19,9 @@ npm run build         # fetch + static build into dist/
 ```
 
 Set `GITHUB_TOKEN` to avoid the anonymous GitHub API rate limit.
+
+## The shared look
+
+`public/brand/v1/` holds the PicoDeck look: `brand.css` (colours taken from the firmware's launcher, the `pd-` components) and its fonts, including the device's own 6x8 font (rebuilt from `picodeck/src/fonts/font_6x8.c` by `scripts/build-pixel-font.py`). This site, the docs theme (`src/styles/docs.css`) and store.picodeck.net all use it; the store links `https://picodeck.net/brand/v1/brand.css` live, which `public/_headers` allows cross-origin.
+
+v1 is additive-only: add tokens and classes, never rename or remove them. `test/brand.test.mjs` fails if one disappears. A breaking change goes in `public/brand/v2/`, then the store moves over, then v1 can go. The site is dark only, like the device.
