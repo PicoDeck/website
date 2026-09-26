@@ -1,6 +1,6 @@
 # picodeck.net
 
-The PicoDeck website: landing page, docs, the browser simulator (`/try/`) and downloads. Astro + Starlight, deployed on Cloudflare Pages.
+The PicoDeck website: landing page, docs, the browser simulator (`/try/`) and downloads. Astro + Starlight, deployed on Cloudflare Workers (static assets; `wrangler.jsonc`).
 
 Everything release-specific comes from the latest [PicoDeck/picodeck](https://github.com/PicoDeck/picodeck) release. `npm run build` first runs `scripts/fetch-release.mjs`, which:
 
