@@ -7,6 +7,7 @@ Everything release-specific comes from the latest [PicoDeck/picodeck](https://gi
 - unzips `picodeck-docs.zip` into `src/content/docs/docs/` (the Markdown in the picodeck repo's `docs/`, plus `_sidebar.json`)
 - unzips `picodeck-web-sim.zip` into `public/try/`
 - writes `src/data/release.json` for the download page
+- reads the apps bundled into the simulator out of its build output into `src/data/sim-apps.json`, so the home page's launcher lists exactly what `/try/` runs
 
 The build fails if the release lacks either zip. The picodeck release workflow calls a Pages deploy hook, so every release rebuilds the site; pushes here rebuild it too.
 

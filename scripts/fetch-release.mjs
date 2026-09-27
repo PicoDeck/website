@@ -2,7 +2,7 @@
 // Prebuild: pull the latest PicoDeck release's docs, web simulator and
 // download metadata into the site. Design: PicoDeck/picodeck
 // specs/2026-09-26-picodeck-rename-design.md, section 7.
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
@@ -46,6 +46,43 @@ export async function extractZip(bytes, dest, required = []) {
   return files.length;
 }
 
+// The launcher's categories; anything else, or none, is filed under demos (launcher.c parse_category).
+const CATEGORIES = ['games', 'tools', 'system', 'demos', 'emulators', 'network'];
+const str = (v) => (typeof v === 'string' ? v : '');
+const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+/**
+ * The apps bundled into the web simulator, read from its build output so the
+ * home page's launcher shows exactly what /try/ runs. Emscripten's file packager
+ * lists each preloaded file in the JS as {filename, start, end} (keys quoted or
+ * not) with its bytes at that range of the .data file. Throws rather than
+ * returning nothing if that format ever changes.
+ */
+export function simApps(js, data) {
+  const entry = /"?filename"?\s*:\s*"\/sd\/apps\/([^"/]+)\/(app\.json|icon\.png)"\s*,\s*"?start"?\s*:\s*(\d+)\s*,\s*"?end"?\s*:\s*(\d+)/g;
+  const files = new Map();
+  for (const [, dir, name, start, end] of js.matchAll(entry)) files.set(`${dir}/${name}`, Buffer.from(data.subarray(Number(start), Number(end))));
+  const apps = [...files.keys()].filter((k) => k.endsWith('/app.json')).map((k) => {
+    const dir = k.slice(0, -'/app.json'.length);
+    let m;
+    try {
+      m = JSON.parse(files.get(k).toString('utf8'));
+    } catch (err) {
+      throw new Error(`web simulator: /sd/apps/${dir}/app.json is not valid JSON (${err.message})`);
+    }
+    const cat = str(m.category).trim().toLowerCase();
+    // The launcher draws apps/<dir>/icon.png (24x24) when there is one, else a cartridge.
+    const icon = files.get(`${dir}/icon.png`);
+    return {
+      id: str(m.id), dir, name: str(m.name) || dir,
+      cat: CATEGORIES.includes(cat) ? cat : 'demos', ver: str(m.version), desc: str(m.description),
+      icon: icon && PNG.equals(icon.subarray(0, 8)) ? `data:image/png;base64,${icon.toString('base64')}` : '',
+    };
+  });
+  if (!apps.length) throw new Error('web simulator: no apps found in the file packager metadata (Emscripten output changed?)');
+  return apps;
+}
+
 async function get(url, token) {
   const headers = { 'User-Agent': 'picodeck-website', Accept: 'application/vnd.github+json' };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -59,10 +96,14 @@ export async function main({ root = process.cwd(), token = process.env.GITHUB_TO
   const info = summarize(release);
   const zipOf = async (name) => (await get(info.assets[name])).arrayBuffer();
   const docs = await extractZip(await zipOf('picodeck-docs.zip'), join(root, 'src/content/docs/docs'), ['index.md', '_sidebar.json']);
-  const sim = await extractZip(await zipOf('picodeck-web-sim.zip'), join(root, 'public/try'), ['index.html']);
+  const sim = await extractZip(await zipOf('picodeck-web-sim.zip'), join(root, 'public/try'),
+    ['index.html', 'picodeck_simulator.js', 'picodeck_simulator.data']);
+  const apps = simApps(await readFile(join(root, 'public/try/picodeck_simulator.js'), 'utf8'),
+    await readFile(join(root, 'public/try/picodeck_simulator.data')));
   await mkdir(join(root, 'src/data'), { recursive: true });
   await writeFile(join(root, 'src/data/release.json'), `${JSON.stringify(info, null, 2)}\n`);
-  console.log(`release ${info.tag}: ${docs} doc files, ${sim} simulator files`);
+  await writeFile(join(root, 'src/data/sim-apps.json'), `${JSON.stringify(apps, null, 2)}\n`);
+  console.log(`release ${info.tag}: ${docs} doc files, ${sim} simulator files, ${apps.length} apps in the simulator`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

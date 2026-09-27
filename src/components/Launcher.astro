@@ -1,35 +1,49 @@
 ---
 // A working replica of the PicoDeck launcher at 2x (1x on phones), drawn with the
-// device's font and colours. ↑↓ select, ←→ change category, Enter opens the simulator.
-import apps from '../data/launcher-apps.json';
-import { sortApps, tabsHtml, rowsHtml, thumb } from '../lib/launcher.mjs';
+// device's font and colours, listing the apps the browser simulator bundles
+// (src/data/sim-apps.json, written by scripts/fetch-release.mjs from the release).
+// ↑↓ select, ←→ change category, Enter asks to launch the app in /try/.
+import apps from '../data/sim-apps.json';
+import { sortApps, tabsHtml, rowsHtml, thumb, iconSvg, BATTERY_FULL, WIFI } from '../lib/launcher.mjs';
 
 const items = sortApps(apps);
 const t = thumb(items.length, 0);
 ---
 <div class="lcd" data-lcd tabindex="0" role="group" aria-roledescription="launcher preview"
-  aria-label="PicoDeck launcher. Up and down select an app, left and right change category, Enter opens the browser simulator.">
-  <div class="lcd-head"><span>PicoDeck</span><span class="lcd-ok">WiFi  Bat:100%</span></div>
+  aria-label="PicoDeck launcher. Up and down select an app, left and right change category, Enter launches it in the browser simulator.">
+  <div class="lcd-head"><span class="lcd-title">PicoDeck</span><span class="lcd-clock" data-lcd-clock></span><Fragment set:html={iconSvg(WIFI, 'lcd-wifi') + iconSvg(BATTERY_FULL, 'lcd-batt')} /></div>
   <div class="lcd-tabs" set:html={tabsHtml(0)} />
   <div class="lcd-list"><ul class="lcd-rows" set:html={rowsHtml(items, 0)} /></div>
-  <div class="lcd-scroll"><div class="lcd-thumb" style={`height:calc(${t.height} * var(--px));top:calc(${t.top} * var(--px))`} /></div>
+  <div class="lcd-scroll" hidden={!t}><div class="lcd-thumb" style={t ? `height:calc(${t.height} * var(--px));top:calc(${t.top} * var(--px))` : undefined} /></div>
   <div class="lcd-foot">L/R:Category  Enter:Launch  F10:Menu</div>
+  <div class="lcd-dialog" role="dialog" aria-label="Launch app" hidden></div>
 </div>
 <p class="pd-sr-only" aria-live="polite" data-lcd-live></p>
 
 <script>
-  import apps from '../data/launcher-apps.json';
-  import { CATS, CAT_NAMES, VISIBLE_ROWS, sortApps, inTab, tabsHtml, rowsHtml, thumb } from '../lib/launcher.mjs';
+  import apps from '../data/sim-apps.json';
+  import { CATS, CAT_NAMES, VISIBLE_ROWS, sortApps, inTab, tabsHtml, rowsHtml, thumb, dialogHtml, launchUrl, clockText } from '../lib/launcher.mjs';
 
-  const all = sortApps(apps);
+  type App = (typeof apps)[number];
+  const all: App[] = sortApps(apps);
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  // The header clock shows the viewer's local time, on the minute.
+  const tick = () => {
+    const now = new Date();
+    for (const c of document.querySelectorAll('[data-lcd-clock]')) c.textContent = clockText(now);
+    setTimeout(tick, 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds()));
+  };
+  tick();
 
   for (const el of document.querySelectorAll<HTMLElement>('[data-lcd]')) {
     const tabsEl = el.querySelector<HTMLElement>('.lcd-tabs')!;
     const rowsEl = el.querySelector<HTMLElement>('.lcd-rows')!;
     const thumbEl = el.querySelector<HTMLElement>('.lcd-thumb')!;
+    const dialogEl = el.querySelector<HTMLElement>('.lcd-dialog')!;
     const live = el.nextElementSibling as HTMLElement;
     let tab = 0, sel = 0, scroll = 0;
+    let dialog: { app: App; choice: number } | null = null;
 
     const render = () => {
       const items = inTab(all, tab);
@@ -37,8 +51,11 @@ const t = thumb(items.length, 0);
       rowsEl.innerHTML = rowsHtml(items, sel);
       rowsEl.style.setProperty('--scroll', String(scroll));
       const t = thumb(items.length, scroll);
-      thumbEl.style.height = `calc(${t.height} * var(--px))`;
-      thumbEl.style.top = `calc(${t.top} * var(--px))`;
+      thumbEl.parentElement!.hidden = !t;
+      if (t) {
+        thumbEl.style.height = `calc(${t.height} * var(--px))`;
+        thumbEl.style.top = `calc(${t.top} * var(--px))`;
+      }
       // Like the device, the selected row's description scrolls when it doesn't fit.
       const desc = rowsEl.querySelector<HTMLElement>('.sel .lcd-desc');
       const text = desc?.firstElementChild as HTMLElement | undefined;
@@ -48,8 +65,13 @@ const t = thumb(items.length, 0);
         text.style.animation = `lcd-marquee ${(2 + over / 30).toFixed(1)}s linear .6s infinite alternate`;
       }
     };
+    const renderDialog = () => {
+      dialogEl.hidden = !dialog;
+      dialogEl.innerHTML = dialog ? dialogHtml(dialog.app, dialog.choice) : '';
+    };
     const move = (d: number) => {
       const items = inTab(all, tab);
+      if (!items.length) return;
       sel = Math.max(0, Math.min(items.length - 1, sel + d));
       if (sel < scroll) scroll = sel;
       if (sel > scroll + VISIBLE_ROWS - 1) scroll = sel - VISIBLE_ROWS + 1;
@@ -60,24 +82,61 @@ const t = thumb(items.length, 0);
       tab = (tab + d + CATS.length) % CATS.length;
       sel = scroll = 0;
       render();
-      live.textContent = `${CAT_NAMES[CATS[tab] as keyof typeof CAT_NAMES]}: ${inTab(all, tab).length} apps`;
+      const n = inTab(all, tab).length;
+      live.textContent = `${CAT_NAMES[CATS[tab] as keyof typeof CAT_NAMES]}: ${n} ${n === 1 ? 'app' : 'apps'}`;
     };
-    const launch = () => { location.href = '/try/'; };
+    const ask = () => {
+      const app = inTab(all, tab)[sel];
+      if (!app) return;
+      dialog = { app, choice: 0 };
+      renderDialog();
+      el.focus({ preventScroll: true });
+      live.textContent = `Launch ${app.name} in the browser simulator? Enter launches, Escape cancels.`;
+    };
+    const close = () => { dialog = null; renderDialog(); };
+    const choose = (choice: number) => {
+      if (!dialog) return;
+      if (choice === 0) location.href = launchUrl(dialog.app);
+      else close();
+    };
 
     el.addEventListener('keydown', (e) => {
-      const keys: Record<string, () => void> = {
-        ArrowUp: () => move(-1), ArrowDown: () => move(1),
-        ArrowLeft: () => setTab(-1), ArrowRight: () => setTab(1), Enter: launch,
-      };
+      const keys: Record<string, () => void> = dialog
+        ? {
+          ArrowUp: () => { dialog!.choice ^= 1; renderDialog(); },
+          ArrowDown: () => { dialog!.choice ^= 1; renderDialog(); },
+          Enter: () => choose(dialog!.choice),
+          Escape: close,
+        }
+        : {
+          ArrowUp: () => move(-1), ArrowDown: () => move(1),
+          ArrowLeft: () => setTab(-1), ArrowRight: () => setTab(1), Enter: ask,
+        };
       if (!keys[e.key]) return;
       e.preventDefault();
       keys[e.key]();
     });
     rowsEl.addEventListener('pointermove', (e) => {
       const row = (e.target as HTMLElement).closest<HTMLElement>('.lcd-row');
-      if (row && Number(row.dataset.i) !== sel) { sel = Number(row.dataset.i); render(); }
+      if (!dialog && row && Number(row.dataset.i) !== sel) { sel = Number(row.dataset.i); render(); }
     });
-    rowsEl.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('.lcd-row')) launch(); });
+    rowsEl.addEventListener('click', (e) => {
+      if (dialog) { close(); return; }
+      // A tap has no hover first, so select the row that was clicked.
+      const row = (e.target as HTMLElement).closest<HTMLElement>('.lcd-row');
+      if (!row) return;
+      if (Number(row.dataset.i) !== sel) { sel = Number(row.dataset.i); render(); }
+      ask();
+    });
+    dialogEl.addEventListener('pointermove', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-choice]');
+      const choice = b?.dataset.choice === 'cancel' ? 1 : 0;
+      if (dialog && b && choice !== dialog.choice) { dialog.choice = choice; renderDialog(); }
+    });
+    dialogEl.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-choice]');
+      if (b) choose(b.dataset.choice === 'cancel' ? 1 : 0);
+    });
     render();
   }
 </script>
@@ -93,35 +152,53 @@ const t = thumb(items.length, 0);
   }
   .lcd:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--pd-rule), 0 0 0 16px var(--pd-navy-deep), 0 0 0 18px var(--pd-focus); }
   .lcd > * { position: absolute; left: 0; right: 0; }
+  /* The header (ui.c drawHeader): 20 rows of gradient, one RGB565 colour per row,
+     then the border row. The stops are 5% per row. */
   .lcd-head {
-    top: 0; height: calc(29 * var(--px)); padding: 0 calc(8 * var(--px));
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--pd-navy); border-bottom: var(--px) solid var(--pd-rule);
+    top: 0; height: calc(21 * var(--px)); border-bottom: var(--px) solid var(--pd-rule);
+    background: linear-gradient(#212452 0 10%, #212052 10% 15%, #21204a 15% 20%, #18204a 20% 30%, #181c4a 30% 35%,
+      #181c42 35% 50%, #181842 50% 60%, #101839 60% 70%, #101439 70% 80%, #101431 80% 90%, #101031 90% 100%);
   }
-  .lcd-ok { color: var(--pd-ok); white-space: pre; }
+  .lcd-head > * { position: absolute; top: calc(6 * var(--px)); }
+  .lcd-title { left: calc(8 * var(--px)); color: #e7ebf7; }
+  .lcd-clock { right: calc(52 * var(--px)); color: #949aad; } /* right edge 8px left of the WiFi icon */
+  .lcd-wifi { left: calc(276 * var(--px)); width: calc(11 * var(--px)); height: calc(8 * var(--px)); color: #e7ebf7; }
+  .lcd-batt { left: calc(295 * var(--px)); top: calc(5 * var(--px)); width: calc(17 * var(--px)); height: calc(9 * var(--px)); color: #e7ebf7; }
   .lcd-tabs {
-    top: calc(29 * var(--px)); height: calc(19 * var(--px));
+    top: calc(21 * var(--px)); height: calc(19 * var(--px));
     display: flex; align-items: center; justify-content: center; gap: calc(2 * var(--px));
     background: var(--pd-navy); border-bottom: var(--px) solid var(--pd-rule);
   }
   .lcd-tab { height: calc(16 * var(--px)); padding: 0 calc(6 * var(--px)); display: flex; align-items: center; background: var(--pd-tab); box-shadow: inset 0 calc(-3 * var(--px)) 0 var(--pd-c); }
   .lcd-dot { width: calc(14 * var(--px)); display: grid; place-items: center; }
   .lcd-dot .pd-dot { width: calc(7 * var(--px)); height: calc(7 * var(--px)); }
-  .lcd-list { top: calc(48 * var(--px)); height: calc(252 * var(--px)); overflow: hidden; }
-  .lcd-rows { margin: 0; padding: 0; list-style: none; transform: translateY(calc(var(--scroll, 0) * -28 * var(--px))); }
-  .lcd-row { position: relative; height: calc(28 * var(--px)); }
-  .lcd-row.sel::before { content: ""; position: absolute; left: calc(4 * var(--px)); right: calc(6 * var(--px)); top: 0; height: calc(26 * var(--px)); background: var(--pd-select); }
+  /* Rows: 32 pitch, 8 visible, 30px selection bar, 24x24 icons (launcher.c ITEM_H, LIST_VISIBLE). */
+  .lcd-list { top: calc(42 * var(--px)); height: calc(256 * var(--px)); overflow: hidden; }
+  .lcd-rows { margin: 0; padding: 0; list-style: none; transform: translateY(calc(var(--scroll, 0) * -32 * var(--px))); }
+  .lcd-row { position: relative; height: calc(32 * var(--px)); }
+  /* 312 wide from x=4 (launcher.c); the scrollbar, when shown, draws over its right end. */
+  .lcd-row.sel::before { content: ""; position: absolute; left: calc(4 * var(--px)); right: calc(4 * var(--px)); top: 0; height: calc(30 * var(--px)); background: var(--pd-select); }
   .lcd-row > span { position: absolute; }
-  .lcd-icon { left: calc(8 * var(--px)); top: calc(3 * var(--px)); width: calc(20 * var(--px)); height: calc(20 * var(--px)); display: grid; place-items: center; background: var(--pd-c); }
-  .lcd-name { left: calc(32 * var(--px)); top: calc(4 * var(--px)); }
-  .lcd-ver { right: calc(8 * var(--px)); top: calc(4 * var(--px)); }
-  .lcd-desc { left: calc(32 * var(--px)); right: calc(6 * var(--px)); top: calc(15 * var(--px)); overflow: hidden; color: var(--pd-dim); }
+  /* 24x24: the app's icon.png drawn 1:1 (nearest neighbour), or the cartridge placeholder. */
+  .lcd-icon { left: calc(8 * var(--px)); top: calc(3 * var(--px)); width: calc(24 * var(--px)); height: calc(24 * var(--px)); }
+  .lcd-icon > * { display: block; width: 100%; height: 100%; }
+  .lcd-icon > img { image-rendering: pixelated; }
+  .lcd-cart text { font: 400 16px var(--pd-pixel); -webkit-font-smoothing: none; } /* 16 units = the 6x8 font at 2x */
+  .lcd-name { left: calc(36 * var(--px)); top: calc(6 * var(--px)); }
+  .lcd-ver { right: calc(8 * var(--px)); top: calc(6 * var(--px)); }
+  .lcd-desc { left: calc(36 * var(--px)); right: calc(6 * var(--px)); top: calc(17 * var(--px)); overflow: hidden; color: var(--pd-dim); }
   .lcd-desc > span { display: inline-block; }
   .lcd-row.sel .lcd-desc { color: var(--pd-dim-on-select); }
   @keyframes lcd-marquee { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(var(--shift)); } }
-  .lcd-scroll { left: calc(314 * var(--px)); right: auto; width: calc(4 * var(--px)); top: calc(48 * var(--px)); height: calc(252 * var(--px)); background: var(--pd-rule); }
+  .lcd-scroll { left: calc(314 * var(--px)); right: auto; width: calc(4 * var(--px)); top: calc(42 * var(--px)); height: calc(256 * var(--px)); background: var(--pd-rule); }
   .lcd-thumb { position: absolute; left: 0; right: 0; background: #fff; }
   .lcd-foot { top: calc(302 * var(--px)); height: calc(18 * var(--px)); padding-left: calc(8 * var(--px)); display: flex; align-items: center; white-space: pre; background: var(--pd-navy); border-top: var(--px) solid var(--pd-rule); }
+  /* The launch prompt, drawn like the System Menu (system_menu.c): 200x58, centred. */
+  .lcd-dialog { left: calc(60 * var(--px)); right: auto; top: calc(131 * var(--px)); width: calc(200 * var(--px)); background: #101c31; border: var(--px) solid var(--pd-field-edge); }
+  .lcd-dialog-title { height: calc(17 * var(--px)); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--pd-navy-deep); border-bottom: var(--px) solid var(--pd-field-edge); }
+  .lcd-dialog button { display: block; width: 100%; height: calc(13 * var(--px)); padding: 0 0 0 calc(3 * var(--px)); text-align: left; white-space: pre; font: inherit; color: #fff; background: #101c31; border: 0; cursor: pointer; }
+  .lcd-dialog button.sel { background: var(--pd-select); }
+  .lcd-dialog-foot { height: calc(13 * var(--px)); display: flex; align-items: center; padding-left: calc(3 * var(--px)); white-space: pre; color: var(--pd-dim); background: var(--pd-navy-deep); border-top: var(--px) solid var(--pd-field-edge); }
   @media (max-width: 719px) {
     .lcd { --px: 1px; box-shadow: 0 0 0 1px var(--pd-rule), 0 0 0 8px var(--pd-navy-deep), 0 0 0 9px var(--pd-rule); }
     .lcd:focus-visible { box-shadow: 0 0 0 1px var(--pd-rule), 0 0 0 8px var(--pd-navy-deep), 0 0 0 9px var(--pd-focus); }

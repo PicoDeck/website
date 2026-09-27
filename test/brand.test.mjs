@@ -14,7 +14,7 @@ const V1_CLASSES = `pd-actions pd-brand pd-btn pd-btn-primary pd-btn-small pd-c-
 const V1_TOKENS = `--pd-all --pd-btn --pd-btn-hover --pd-demos --pd-dim --pd-dim-on-select --pd-emulators
   --pd-error --pd-field --pd-field-edge --pd-focus --pd-games --pd-gutter --pd-mono --pd-navy
   --pd-navy-deep --pd-network --pd-ok --pd-pixel --pd-rule --pd-sans --pd-select --pd-select-hover
-  --pd-system --pd-tab --pd-text --pd-titlebar-h --pd-tools --pd-warn`.split(/\s+/);
+  --pd-system --pd-tab --pd-text --pd-titlebar-h --pd-tools --pd-warn --pd-status`.split(/\s+/);
 
 const DIR = new URL('../public/brand/v1/', import.meta.url);
 const css = readFileSync(new URL('brand.css', DIR), 'utf8');

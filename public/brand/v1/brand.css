@@ -36,7 +36,8 @@
   --pd-focus: #638ede;       /* UW_FOCUS */
   --pd-btn: #192842;         /* UW_BTN_BG */
   --pd-btn-hover: #293d63;   /* UW_BTN_FOCUS */
-  --pd-ok: #00ff00;          /* COLOR_GREEN: status readouts */
+  --pd-ok: #00ff00;          /* COLOR_GREEN: success states */
+  --pd-status: #949aad;      /* the launcher header's status text (ui.c), e.g. its clock */
   --pd-warn: #ffcb31;
   --pd-error: #ff6531;
   /* Launcher category colours (s_tab_colors) */
@@ -102,7 +103,7 @@ html:has(> .pd-page) { background: #000; scroll-padding-top: calc(var(--pd-title
 .pd-nav a { flex: none; height: 40px; display: flex; align-items: center; padding: 0 12px; white-space: nowrap; font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; }
 .pd-nav a:hover { background: var(--pd-btn-hover); color: #fff; }
 .pd-nav a[aria-current="page"] { background: var(--pd-tab); box-shadow: inset 0 -4px 0 var(--pd-all); }
-.pd-nav a.pd-status { margin-left: 8px; color: var(--pd-ok); }
+.pd-nav a.pd-status { margin-left: 8px; color: var(--pd-status); }
 @media (max-width: 719px) {
   .pd-nav a { padding: 0 8px; }
   .pd-nav a.pd-status { display: none; }
