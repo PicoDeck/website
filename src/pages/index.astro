@@ -43,7 +43,7 @@ const categories = [
         <a class="pd-btn pd-btn-primary" href="/try/">Try it in your browser</a>
         <a class="pd-btn" href="#install">Download</a>
       </div>
-      <p class="note">The browser version runs the launcher and Lua apps. Networking and native apps need a PicoCalc.</p>
+      <p class="note">The browser version runs the launcher and Lua apps. On real hardware, PicoDeck needs a PicoCalc fitted with a <a href="https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w">Pimoroni Pico Plus 2 W</a>.</p>
     </div>
     <div class="screen">
       <Launcher />
@@ -89,18 +89,24 @@ const categories = [
       <ol class="steps">
         <li>
           <span class="step-n" aria-hidden="true">1</span>
+          <h3 class="pd-subheading">Fit a Pico Plus 2 W</h3>
+          <p>PicoDeck only runs on the Pimoroni Pico Plus 2 W. Other Pico boards, including the one that comes with the PicoCalc, won't run it: PicoDeck runs its code straight from the Pico Plus 2 W's 8 MB of PSRAM. Swap the board in before you flash.</p>
+          <a class="pd-btn" href="https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w">Get a Pico Plus 2 W</a>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">2</span>
           <h3 class="pd-subheading">Download</h3>
           <p>Get <code>picodeck.uf2</code> from the {release.tag} release.</p>
           <a class="pd-btn pd-btn-primary" href={release.assets['picodeck.uf2']}>Download picodeck.uf2</a>
           <p class="note"><a href="/download/">Other files and release notes</a></p>
         </li>
         <li>
-          <span class="step-n" aria-hidden="true">2</span>
+          <span class="step-n" aria-hidden="true">3</span>
           <h3 class="pd-subheading">Flash</h3>
-          <p>Hold BOOTSEL on the Pico while you connect USB, then copy <code>picodeck.uf2</code> to the drive that appears. It restarts into the launcher.</p>
+          <p>Hold BOOTSEL on the Pico Plus 2 W while you connect USB, then copy <code>picodeck.uf2</code> to the drive that appears. It restarts into the launcher.</p>
         </li>
         <li>
-          <span class="step-n" aria-hidden="true">3</span>
+          <span class="step-n" aria-hidden="true">4</span>
           <h3 class="pd-subheading">Add apps</h3>
           <p>Open App Store on the device to install over Wi-Fi, or copy app folders into <code>/apps/</code> on the SD card.</p>
         </li>
@@ -137,7 +143,7 @@ const categories = [
   .cat-rows .pd-dot { margin-top: 6px; }
   .cat-name { line-height: 26px; color: var(--pd-c); }
 
-  .steps { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 56px; }
+  .steps { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 48px; }
   .step-n { display: block; font: 400 48px/48px var(--pd-pixel); -webkit-font-smoothing: none; color: var(--pd-all); }
   .steps h3 { margin-top: 24px; }
   .steps p { margin-top: 12px; max-width: 30em; }
@@ -145,6 +151,7 @@ const categories = [
 
   @media (max-width: 1399px) { .hero h1 { font-size: 40px; line-height: 48px; } }
   @media (max-width: 1199px) {
+    .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hero { grid-template-columns: minmax(0, 1fr); gap: 48px; }
     .hero h1 { max-width: 18ch; }
     .split { grid-template-columns: minmax(0, 1fr); gap: 40px; }

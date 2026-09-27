@@ -8,7 +8,7 @@ const published = release.published
   ? new Date(release.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
   : '';
 const files = [
-  ['picodeck.uf2', 'The firmware. Hold BOOTSEL while connecting USB, then copy the file to the drive that appears.'],
+  ['picodeck.uf2', 'The firmware, for the Pico Plus 2 W. Hold BOOTSEL while connecting USB, then copy the file to the drive that appears.'],
   ['picodeck.sha256', 'SHA-256 of the OTA image (picodeck.bin).'],
   ['picodeck-simulator-linux', 'The desktop simulator (x86-64 Linux, SDL2).'],
 ].filter(([name]) => assets[name]);
@@ -21,6 +21,10 @@ const { code: notes } = await markdown.render((release.notes ?? '').replace(/^#\
   <div class="pd-wrap page">
     <h1 class="pd-title">Download {release.tag}</h1>
     {published && <p class="meta">Released {published}. <a href={release.url}>Release page on GitHub</a></p>}
+    <div class="pd-note board">
+      <h2 class="pd-label">Needs a Pimoroni Pico Plus 2 W</h2>
+      <p>PicoDeck only runs on a PicoCalc fitted with a <a href="https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w">Pimoroni Pico Plus 2 W</a>. Other Pico boards, including the one that comes with the PicoCalc, won't run it, because PicoDeck runs its code straight from that board's 8 MB of PSRAM.</p>
+    </div>
 
     <div class="grid">
       <section class="pd-panel" aria-labelledby="files">
@@ -45,6 +49,7 @@ const { code: notes } = await markdown.render((release.notes ?? '').replace(/^#\
 <style>
   .page { padding-block: 56px 88px; }
   .meta { margin-top: 12px; color: var(--pd-dim); }
+  .board { max-width: 880px; margin-top: 32px; }
   .grid { display: grid; gap: 32px; max-width: 880px; margin-top: 40px; }
   .files { list-style: none; margin: 0; padding: 0; }
   .files li { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px; }
