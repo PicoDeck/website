@@ -1,14 +1,7 @@
 ---
 import Site from '../layouts/Site.astro';
-import { existsSync } from 'node:fs';
-import Launcher from '../components/Launcher.astro';
 import LauncherShot from '../components/LauncherShot.astro';
 import release from '../data/release.json';
-
-// Releases whose simulator zip carries launcher.png and shell.js get the real screen,
-// which starts the real simulator. Older ones get the hand-drawn replica
-// (Launcher.astro); delete it once the latest release has both files.
-const realScreen = existsSync('public/try/launcher.png') && existsSync('public/try/shell.js');
 
 // Highlighted with the launcher's category colours. Strings, because Astro reads { } in markup.
 const appJson = `{
@@ -53,10 +46,8 @@ const categories = [
       <p class="note">The browser version runs the launcher and Lua apps. On real hardware, PicoDeck needs a PicoCalc fitted with a <a href="https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w">Pimoroni Pico Plus 2 W</a>.</p>
     </div>
     <div class="screen">
-      {realScreen ? <LauncherShot /> : <Launcher />}
-      {realScreen
-        ? <p class="caption">The launcher from the latest release, with the apps in the browser version. Click or tap the screen to start the simulator.</p>
-        : <p class="caption">The launcher with the apps from the browser version, in the device's own 6×8 font. Pick one, or use the arrow keys and Enter, to launch it.</p>}
+      <LauncherShot />
+      <p class="caption">The launcher from the latest release, with the apps in the browser version. Click or tap the screen to start the simulator.</p>
     </div>
   </section>
 

@@ -4,12 +4,6 @@
 // release via scripts/fetch-release.mjs; this page replaces the release's own
 // index.html, so the page itself changes with a website deploy.
 import Site from '../../layouts/Site.astro';
-import { existsSync } from 'node:fs';
-import fallbackGlue from '../../lib/try-glue-v0.3.js?raw';
-
-// The page glue ships with the simulator (shell.js in the release zip, from PicoDeck's
-// simulator/web/shell.js). Releases before it get the inline fallback.
-const hasShellJs = existsSync('public/try/shell.js');
 ---
 <Site title="Try PicoDeck" current="try" description="Run the PicoDeck launcher and Lua apps in your browser, no install needed.">
 <div class="try pd-wrap">
@@ -60,9 +54,8 @@ const hasShellJs = existsSync('public/try/shell.js');
 <input id="textsink" type="text" autocomplete="off" autocorrect="off"
        autocapitalize="off" spellcheck="false" aria-hidden="true" tabindex="-1">
 
-{hasShellJs
-  ? <script is:inline src="/try/shell.js"></script>
-  : <script is:inline set:html={fallbackGlue} />}
+<!-- The page glue ships with the simulator (PicoDeck's simulator/web/shell.js). -->
+<script is:inline src="/try/shell.js"></script>
 <script is:inline async src="/try/picodeck_simulator.js"></script>
 </Site>
 

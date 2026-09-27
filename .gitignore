@@ -24,4 +24,3 @@ pnpm-debug.log*
 src/content/docs/docs/
 public/try/
 src/data/release.json
-src/data/sim-apps.json

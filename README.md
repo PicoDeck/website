@@ -5,11 +5,10 @@ The PicoDeck website: landing page, docs, the browser simulator (`/try/`) and do
 Everything release-specific comes from the latest [PicoDeck/picodeck](https://github.com/PicoDeck/picodeck) release. `npm run build` first runs `scripts/fetch-release.mjs`, which:
 
 - unzips `picodeck-docs.zip` into `src/content/docs/docs/` (the Markdown in the picodeck repo's `docs/`, plus `_sidebar.json`)
-- unzips the simulator from `picodeck-web-sim.zip` (`.js`, `.wasm`, `.data`) into `public/try/`; the page around it is `src/pages/try/index.astro`, so `/try/` changes with a site deploy, and `/try/?app=<folder>` starts that app
+- unzips `picodeck-web-sim.zip` into `public/try/`: the simulator (`.js`, `.wasm`, `.data`), its page glue `shell.js`, and `launcher.png`, the launcher captured from the simulator in PicoDeck's release CI, which the home page shows and boots on a click. The page around the simulator is `src/pages/try/index.astro`, so `/try/` changes with a site deploy; `/try/?app=<folder>` starts that app
 - writes `src/data/release.json` for the download page
-- reads the apps bundled into the simulator out of its build output into `src/data/sim-apps.json`, so the home page's launcher lists exactly what `/try/` runs
 
-The build fails if the release lacks either zip. The picodeck release workflow calls a Pages deploy hook, so every release rebuilds the site; pushes here rebuild it too.
+The build fails if the release lacks either zip, or the web simulator zip lacks any of those files. The picodeck release workflow calls a Pages deploy hook, so every release rebuilds the site; pushes here rebuild it too.
 
 ```
 npm install
