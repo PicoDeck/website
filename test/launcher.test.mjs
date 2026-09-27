@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sortApps, inTab, rowsHtml, tabsHtml, thumb, dialogHtml, launchUrl, bitmapPath, iconSvg, BATTERY_FULL, WIFI, clockText, VISIBLE_ROWS, cartTints, cartridgeSvg, CART } from '../src/lib/launcher.mjs';
+import { sortApps, inTab, rowsHtml, tabsHtml, thumb, dialogHtml, launchUrl, bitmapPath, iconSvg, BATTERY_FULL, WIFI, clockText, VISIBLE_ROWS } from '../src/lib/launcher.mjs';
 
 const app = (name, cat = 'games') => ({ name, cat, ver: '1.0', desc: 'd' });
 
@@ -67,25 +67,9 @@ test('the clock reads like the device, 24-hour', () => {
   assert.equal(clockText(new Date(2026, 8, 27, 23, 59)), '23:59');
 });
 
-test('cartridge tints follow launcher.c: per RGB565 channel, integer maths, clamped', () => {
-  // Demos (255,200,50): c, then h = x*6/5 (clamped), l = x*7/10, d = x*9/20.
-  assert.deepEqual(cartTints('demos'), { c: '#ffcb31', h: '#fff339', l: '#ad8e21', d: '#6b5910' });
-  assert.deepEqual(cartTints('emulators'), { c: '#9465ff', h: '#ad79ff', l: '#6345ad', d: '#422c6b' });
-  assert.deepEqual(cartTints('nonsense'), cartTints('demos'));
-});
-
-test('the cartridge is the firmware template with the upper-cased initial', () => {
-  assert.equal(CART.length, 24);
-  assert.ok(CART.every((row) => row.length === 24));
-  const svg = cartridgeSvg({ name: 'snake', cat: 'games' });
-  assert.match(svg, /^<svg class="lcd-cart" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">/);
-  assert.match(svg, /<path fill="#081031" d="M0 0h24v1H0z/);             // background row 0
-  assert.match(svg, /<path fill="#efebd6" d="M5 5h15v1H5z/);             // label from row 5
-  assert.match(svg, /<text x="7" y="20" fill="#6b2c10">S<\/text><\/svg>$/); // dark tint of games
-});
-
 test('rows show the app icon when there is one, else the cartridge', () => {
   const html = rowsHtml([{ ...app('A'), icon: 'data:image/png;base64,AAA=' }, app('B')], 0);
   assert.match(html, /<span class="lcd-icon"><img src="data:image\/png;base64,AAA=" alt=""><\/span>/);
-  assert.match(html, /<span class="lcd-icon"><svg class="lcd-cart"/);
+  assert.match(html, /<span class="lcd-icon"><span class="pd-cart pd-c-games">B<\/span><\/span>/);
+  assert.match(rowsHtml([app(' snake')], 0), /pd-c-games">S</);
 });

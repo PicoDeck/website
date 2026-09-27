@@ -48,6 +48,16 @@
   --pd-demos: #ffcb31;
   --pd-emulators: #9465ff;
   --pd-network: #31cb94;
+  /* Cartridge placeholder tints (launcher.c draw_fallback_icon): h = c*6/5, l = c*7/10,
+     d = c*9/20 per RGB565 channel, clamped. test/brand.test.mjs checks them. */
+  --pd-games-h: #ff7939; --pd-games-l: #ad4521; --pd-games-d: #6b2c10;
+  --pd-tools-h: #73dbff; --pd-tools-l: #427dad; --pd-tools-d: #29516b;
+  --pd-system-h: #c6c3c6; --pd-system-l: #737173; --pd-system-d: #4a494a;
+  --pd-demos-h: #fff339; --pd-demos-l: #ad8e21; --pd-demos-d: #6b5910;
+  --pd-emulators-h: #ad79ff; --pd-emulators-l: #6345ad; --pd-emulators-d: #422c6b;
+  --pd-network-h: #39f3ad; --pd-network-l: #218e63; --pd-network-d: #105942;
+  --pd-cart-bg: #081031;     /* RGB565(12,16,48) */
+  --pd-cart-label: #efebd6;  /* RGB565(239,232,212) */
   --pd-pixel: "PicoDeck 6x8", ui-monospace, monospace;
   --pd-sans: "Atkinson Hyperlegible Next", system-ui, sans-serif;
   --pd-mono: "Atkinson Hyperlegible Mono", ui-monospace, monospace;
@@ -57,12 +67,12 @@
 @media (max-width: 719px) { :root { --pd-gutter: 16px; } }
 
 .pd-c-all { --pd-c: var(--pd-all); }
-.pd-c-games { --pd-c: var(--pd-games); }
-.pd-c-tools { --pd-c: var(--pd-tools); }
-.pd-c-system { --pd-c: var(--pd-system); }
-.pd-c-demos { --pd-c: var(--pd-demos); }
-.pd-c-emulators { --pd-c: var(--pd-emulators); }
-.pd-c-network { --pd-c: var(--pd-network); }
+.pd-c-games { --pd-c: var(--pd-games); --pd-c-h: var(--pd-games-h); --pd-c-l: var(--pd-games-l); --pd-c-d: var(--pd-games-d); }
+.pd-c-tools { --pd-c: var(--pd-tools); --pd-c-h: var(--pd-tools-h); --pd-c-l: var(--pd-tools-l); --pd-c-d: var(--pd-tools-d); }
+.pd-c-system { --pd-c: var(--pd-system); --pd-c-h: var(--pd-system-h); --pd-c-l: var(--pd-system-l); --pd-c-d: var(--pd-system-d); }
+.pd-c-demos { --pd-c: var(--pd-demos); --pd-c-h: var(--pd-demos-h); --pd-c-l: var(--pd-demos-l); --pd-c-d: var(--pd-demos-d); }
+.pd-c-emulators { --pd-c: var(--pd-emulators); --pd-c-h: var(--pd-emulators-h); --pd-c-l: var(--pd-emulators-l); --pd-c-d: var(--pd-emulators-d); }
+.pd-c-network { --pd-c: var(--pd-network); --pd-c-h: var(--pd-network-h); --pd-c-l: var(--pd-network-l); --pd-c-d: var(--pd-network-d); }
 
 /* ── Page base: opt in with <body class="pd-page">. :where() keeps these at
    zero specificity so any pd- component (or site rule) wins. ─────────────── */
@@ -160,17 +170,44 @@ select.pd-field {
   background: var(--pd-field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M0 0h5v1H4v1H3v1H2V2H1V1H0z'/%3E%3C/svg%3E") no-repeat right 12px center / 10px 6px;
 }
 
-/* ── Icon tile: the launcher's 20x20 app icon, at 2x ──────────────────── */
+/* ── Icon tile: the launcher's 24x24 app icon, at 2x ──────────────────── */
 .pd-icon {
-  flex: none; width: 40px; height: 40px; display: grid; place-items: center; object-fit: cover;
+  flex: none; width: 48px; height: 48px; display: grid; place-items: center; object-fit: cover;
   background: var(--pd-c, var(--pd-system)); color: #fff; font: 400 16px/16px var(--pd-pixel); -webkit-font-smoothing: none;
 }
 img.pd-icon { background: var(--pd-navy); }
-.pd-icon-lg { width: 80px; height: 80px; font-size: 32px; line-height: 32px; }
+.pd-icon-lg { width: 96px; height: 96px; font-size: 32px; line-height: 32px; --pd-cart-u: 4px; }
+
+/* The launcher's placeholder for an app without an icon (launcher.c draw_fallback_icon):
+   a 24x24 cartridge in the category colour (a pd-c-* class) with the app's upper-cased
+   initial, drawn as the template's 12 rectangles. --pd-cart-u is one device pixel
+   (2px: a 48px tile, the size of .pd-icon). Markup: <span class="pd-cart pd-c-games">S</span> */
+.pd-cart {
+  flex: none; display: block; box-sizing: border-box; overflow: hidden;
+  width: calc(24 * var(--pd-cart-u, 2px)); height: calc(24 * var(--pd-cart-u, 2px));
+  padding: calc(6 * var(--pd-cart-u, 2px)) 0 0 calc(7 * var(--pd-cart-u, 2px));
+  font: 400 calc(16 * var(--pd-cart-u, 2px)) / calc(16 * var(--pd-cart-u, 2px)) var(--pd-pixel);
+  -webkit-font-smoothing: none; text-transform: uppercase; color: var(--pd-c-d);
+  --u: var(--pd-cart-u, 2px);
+  background:
+    linear-gradient(var(--pd-c-h), var(--pd-c-h)) calc(3 * var(--u)) var(--u) / calc(15 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c-h), var(--pd-c-h)) calc(3 * var(--u)) calc(2 * var(--u)) / var(--u) calc(20 * var(--u)) no-repeat,
+    linear-gradient(var(--pd-c), var(--pd-c)) calc(4 * var(--u)) calc(2 * var(--u)) / calc(16 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c), var(--pd-c)) calc(4 * var(--u)) calc(3 * var(--u)) / calc(2 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c-l), var(--pd-c-l)) calc(6 * var(--u)) calc(3 * var(--u)) / calc(11 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c), var(--pd-c)) calc(17 * var(--u)) calc(3 * var(--u)) / calc(3 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c), var(--pd-c)) calc(4 * var(--u)) calc(4 * var(--u)) / calc(17 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c), var(--pd-c)) calc(4 * var(--u)) calc(5 * var(--u)) / var(--u) calc(17 * var(--u)) no-repeat,
+    linear-gradient(var(--pd-cart-label), var(--pd-cart-label)) calc(5 * var(--u)) calc(5 * var(--u)) / calc(15 * var(--u)) calc(17 * var(--u)) no-repeat,
+    linear-gradient(var(--pd-c-l), var(--pd-c-l)) calc(20 * var(--u)) calc(5 * var(--u)) / var(--u) calc(17 * var(--u)) no-repeat,
+    linear-gradient(var(--pd-c-l), var(--pd-c-l)) calc(3 * var(--u)) calc(22 * var(--u)) / calc(18 * var(--u)) var(--u) no-repeat,
+    linear-gradient(var(--pd-c-d), var(--pd-c-d)) calc(8 * var(--u)) calc(23 * var(--u)) / calc(9 * var(--u)) var(--u) no-repeat,
+    var(--pd-cart-bg);
+}
 
 /* ── App rows: the launcher list. Hover and focus are the selection bar. ─ */
 .pd-list { list-style: none; margin: 0; padding: 0; }
-.pd-row { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; column-gap: 16px; align-items: center; padding: 10px 16px 10px 12px; }
+.pd-row { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; column-gap: 16px; align-items: center; padding: 10px 16px 10px 12px; }
 .pd-row > .pd-icon { grid-row: 1 / 3; }
 .pd-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; }
 .pd-row-name a { color: #fff; text-decoration: none; }

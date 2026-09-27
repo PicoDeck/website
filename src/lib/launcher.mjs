@@ -26,46 +26,12 @@ export function tabsHtml(tab) {
     : `<span class="lcd-dot"><span class="pd-dot pd-c-${c}"></span></span>`)).join('');
 }
 
-// The launcher's 24x24 placeholder for apps without an icon.png (launcher.c
-// draw_fallback_icon): a cartridge in the category colour. '.' background,
-// c colour, h highlight, l shade, d dark, w label.
-export const CART = [
-  '........................',
-  '...hhhhhhhhhhhhhhh......',
-  '...hcccccccccccccccc....',
-  '...hcclllllllllllccc....',
-  '...hccccccccccccccccc...',
-  ...Array(17).fill('...hcwwwwwwwwwwwwwwwl...'),
-  '...llllllllllllllllll...',
-  '........ddddddddd.......',
-];
-const CART_BG = '#081031';    // RGB565(12,16,48) as the LCD shows it
-const CART_LABEL = '#efebd6'; // RGB565(239,232,212)
-// Category colours as launcher.c passes them to RGB565() (s_cat_colors).
-const CAT_RGB = { games: [255, 100, 50], tools: [100, 180, 255], system: [160, 160, 160], demos: [255, 200, 50], emulators: [150, 100, 255], network: [50, 200, 150] };
-const hex565 = ([r, g, b]) => `#${[(r << 3) | (r >> 2), (g << 2) | (g >> 4), (b << 3) | (b >> 2)].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
-
-/** Cartridge tints, per RGB565 channel with C integer division, clamped to the channel. */
-export function cartTints(cat) {
-  const [R, G, B] = CAT_RGB[cat] ?? CAT_RGB.demos;
-  const c = [R >> 3, G >> 2, B >> 3];
-  const scale = (n, d) => c.map((v, i) => Math.min(i === 1 ? 63 : 31, Math.floor((v * n) / d)));
-  return { c: hex565(c), h: hex565(scale(6, 5)), l: hex565(scale(7, 10)), d: hex565(scale(9, 20)) };
-}
-
-/** The cartridge, with the app's upper-cased initial in the 6x8 font at 2x, cell origin (7,6). */
-export function cartridgeSvg(app) {
-  const t = cartTints(app.cat);
-  const fills = { '.': CART_BG, h: t.h, c: t.c, l: t.l, d: t.d, w: CART_LABEL };
-  const paths = Object.entries(fills).map(([sym, fill]) =>
-    `<path fill="${fill}" d="${bitmapPath(CART.map((row) => row.replace(/./g, (ch) => (ch === sym ? '#' : '.'))))}"/>`).join('');
-  return '<svg class="lcd-cart" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">'
-    + `${paths}<text x="7" y="20" fill="${t.d}">${esc((app.name.trim()[0] ?? '?').toUpperCase())}</text></svg>`;
-}
+/** No icon.png: the launcher's cartridge placeholder, from brand.css (.pd-cart). */
+const cart = (a) => `<span class="pd-cart pd-c-${a.cat}">${esc((a.name.trim()[0] ?? '?').toUpperCase())}</span>`;
 
 export function rowsHtml(items, sel) {
   return items.map((a, i) => `<li class="lcd-row${i === sel ? ' sel' : ''}" data-i="${i}">`
-    + `<span class="lcd-icon">${a.icon ? `<img src="${esc(a.icon)}" alt="">` : cartridgeSvg(a)}</span><span class="lcd-name">${esc(a.name)}</span>`
+    + `<span class="lcd-icon">${a.icon ? `<img src="${esc(a.icon)}" alt="">` : cart(a)}</span><span class="lcd-name">${esc(a.name)}</span>`
     + `<span class="lcd-ver">${esc(a.ver)}</span><span class="lcd-desc"><span>${esc(a.desc)}</span></span></li>`).join('');
 }
 

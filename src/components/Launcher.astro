@@ -183,7 +183,7 @@ const t = thumb(items.length, 0);
   .lcd-icon { left: calc(8 * var(--px)); top: calc(3 * var(--px)); width: calc(24 * var(--px)); height: calc(24 * var(--px)); }
   .lcd-icon > * { display: block; width: 100%; height: 100%; }
   .lcd-icon > img { image-rendering: pixelated; }
-  .lcd-cart text { font: 400 16px var(--pd-pixel); -webkit-font-smoothing: none; } /* 16 units = the 6x8 font at 2x */
+  .lcd-icon > .pd-cart { --pd-cart-u: var(--px); } /* brand.css cartridge, one device pixel per unit */
   .lcd-name { left: calc(36 * var(--px)); top: calc(6 * var(--px)); }
   .lcd-ver { right: calc(8 * var(--px)); top: calc(6 * var(--px)); }
   .lcd-desc { left: calc(36 * var(--px)); right: calc(6 * var(--px)); top: calc(17 * var(--px)); overflow: hidden; color: var(--pd-dim); }
