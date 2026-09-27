@@ -1,0 +1,63 @@
+---
+// The launcher as the latest release's simulator draws it: /try/launcher.png, captured
+// in PicoDeck's release CI (scripts/ci/capture-launcher.sh) with the web demo's apps.
+// Clicking starts that simulator right here (loading /try/shell.js, then the
+// simulator); touch devices go to /try/, which has the on-screen keys.
+---
+<div class="lcd-live" data-live>
+  <button class="lcd-start" type="button" aria-label="Start the PicoDeck simulator here">
+    <img src="/try/launcher.png" width="320" height="320" alt="The PicoDeck launcher, listing the apps in the browser version" />
+    <span class="lcd-start-hint">Start</span>
+  </button>
+</div>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-live]');
+  box?.querySelector('.lcd-start')?.addEventListener('click', () => {
+    if (matchMedia('(hover: none), (pointer: coarse)').matches) {
+      location.href = '/try/';
+      return;
+    }
+    // shell.js (the simulator's page glue) wants #canvas, and #status if there is one.
+    const canvas = Object.assign(document.createElement('canvas'), { id: 'canvas', tabIndex: 0 });
+    canvas.setAttribute('aria-label', 'PicoDeck simulator screen');
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    const status = Object.assign(document.createElement('div'), { id: 'status', className: 'lcd-status', textContent: 'Loading…' });
+    box.replaceChildren(canvas, status);
+    const load = (src: string) => new Promise((resolve, reject) => {
+      document.body.append(Object.assign(document.createElement('script'), { src, onload: resolve, onerror: reject }));
+    });
+    load('/try/shell.js')
+      .then(() => {
+        // The .data package is fetched relative to the page, not the script: point it at /try/.
+        (window as unknown as { Module: { locateFile: (p: string) => string } }).Module.locateFile = (p) => `/try/${p}`;
+        return load('/try/picodeck_simulator.js');
+      })
+      .catch(() => { status.textContent = 'The simulator did not load. Open Try it instead.'; });
+  });
+</script>
+
+<style is:global>
+  /* The device screen at 2x (1x on phones), in the same bezel as the rest of the site. */
+  .lcd-live {
+    --px: 2px;
+    position: relative; width: calc(320 * var(--px)); height: calc(320 * var(--px)); background: #000;
+    box-shadow: 0 0 0 2px var(--pd-rule), 0 0 0 16px var(--pd-navy-deep), 0 0 0 18px var(--pd-rule);
+  }
+  .lcd-live:has(:focus-visible) { box-shadow: 0 0 0 2px var(--pd-rule), 0 0 0 16px var(--pd-navy-deep), 0 0 0 18px var(--pd-focus); }
+  .lcd-start { position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+  .lcd-start:focus-visible, .lcd-live canvas:focus-visible { outline: none; }
+  .lcd-start img, .lcd-live canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+  .lcd-start-hint {
+    position: absolute; left: 50%; top: 50%; translate: -50% -50%; padding: 12px 20px; opacity: 0; transition: opacity 0.15s;
+    font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; background: var(--pd-select); border: 2px solid var(--pd-focus);
+  }
+  .lcd-start:is(:hover, :focus-visible) .lcd-start-hint { opacity: 1; }
+  .lcd-status { position: absolute; left: 0; right: 0; top: 50%; translate: 0 -50%; text-align: center; font: 400 16px/24px var(--pd-pixel); -webkit-font-smoothing: none; color: var(--pd-dim); }
+  .lcd-status:empty { display: none; }
+  @media (max-width: 719px) {
+    .lcd-live { --px: 1px; box-shadow: 0 0 0 1px var(--pd-rule), 0 0 0 8px var(--pd-navy-deep), 0 0 0 9px var(--pd-rule); }
+    .lcd-live:has(:focus-visible) { box-shadow: 0 0 0 1px var(--pd-rule), 0 0 0 8px var(--pd-navy-deep), 0 0 0 9px var(--pd-focus); }
+  }
+  @media (prefers-reduced-motion: reduce) { .lcd-start-hint { transition: none; } }
+</style>
