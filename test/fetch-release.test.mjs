@@ -114,3 +114,11 @@ test('simApps carries each app icon.png as a data URI, and skips anything that i
   assert.deepEqual(simApps(js, data).map((a) => [a.dir, a.icon]),
     [['a', `data:image/png;base64,${png.toString('base64')}`], ['b', ''], ['c', '']]);
 });
+
+test('extractZip can leave out named entries (the site renders /try/ itself)', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'site-'));
+  const zip = zipSync({ 'index.html': strToU8('<p>release page</p>'), 'sim.js': strToU8('x') });
+  assert.equal(await extractZip(zip, join(dir, 'out'), ['sim.js'], { skip: ['index.html'] }), 1);
+  assert.equal(existsSync(join(dir, 'out/index.html')), false);
+  assert.equal(await readFile(join(dir, 'out/sim.js'), 'utf8'), 'x');
+});

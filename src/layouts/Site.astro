@@ -6,7 +6,7 @@ import release from '../data/release.json';
 interface Props {
   title: string;
   description?: string;
-  current?: 'download';
+  current?: 'try' | 'download';
 }
 const {
   title,
@@ -31,7 +31,7 @@ const {
       <div class="pd-wrap">
         <a class="pd-brand" href="/">PicoDeck</a>
         <nav class="pd-nav" aria-label="Site">
-          <a href="/try/">Try it</a>
+          <a href="/try/" aria-current={current === 'try' ? 'page' : undefined}>Try it</a>
           <a href="/docs/">Docs</a>
           <a href="https://store.picodeck.net/">Store</a>
           <a class="pd-status" href="/download/" aria-current={current === 'download' ? 'page' : undefined}>{release.tag}</a>

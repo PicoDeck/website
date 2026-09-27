@@ -5,7 +5,7 @@ The PicoDeck website: landing page, docs, the browser simulator (`/try/`) and do
 Everything release-specific comes from the latest [PicoDeck/picodeck](https://github.com/PicoDeck/picodeck) release. `npm run build` first runs `scripts/fetch-release.mjs`, which:
 
 - unzips `picodeck-docs.zip` into `src/content/docs/docs/` (the Markdown in the picodeck repo's `docs/`, plus `_sidebar.json`)
-- unzips `picodeck-web-sim.zip` into `public/try/`
+- unzips the simulator from `picodeck-web-sim.zip` (`.js`, `.wasm`, `.data`) into `public/try/`; the page around it is `src/pages/try/index.astro`, so `/try/` changes with a site deploy, and `/try/?app=<folder>` starts that app
 - writes `src/data/release.json` for the download page
 - reads the apps bundled into the simulator out of its build output into `src/data/sim-apps.json`, so the home page's launcher lists exactly what `/try/` runs
 

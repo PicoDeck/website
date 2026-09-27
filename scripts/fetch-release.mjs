@@ -33,8 +33,8 @@ export function safeEntryPath(dest, entry) {
   return join(dest, rel);
 }
 
-export async function extractZip(bytes, dest, required = []) {
-  const files = Object.entries(unzipSync(new Uint8Array(bytes))).filter(([name]) => !name.endsWith('/'));
+export async function extractZip(bytes, dest, required = [], { skip = [] } = {}) {
+  const files = Object.entries(unzipSync(new Uint8Array(bytes))).filter(([name]) => !name.endsWith('/') && !skip.includes(name));
   const missing = required.filter((n) => !files.some(([name]) => name === n));
   if (missing.length) throw new Error(`zip for ${dest} is missing ${missing.join(', ')}`);
   await rm(dest, { recursive: true, force: true });
@@ -96,8 +96,10 @@ export async function main({ root = process.cwd(), token = process.env.GITHUB_TO
   const info = summarize(release);
   const zipOf = async (name) => (await get(info.assets[name])).arrayBuffer();
   const docs = await extractZip(await zipOf('picodeck-docs.zip'), join(root, 'src/content/docs/docs'), ['index.md', '_sidebar.json']);
+  // The simulator itself; the page around it is the site's own (src/pages/try/index.astro),
+  // so /try/ changes with a website deploy rather than a PicoDeck release.
   const sim = await extractZip(await zipOf('picodeck-web-sim.zip'), join(root, 'public/try'),
-    ['index.html', 'picodeck_simulator.js', 'picodeck_simulator.data']);
+    ['picodeck_simulator.js', 'picodeck_simulator.wasm', 'picodeck_simulator.data'], { skip: ['index.html'] });
   const apps = simApps(await readFile(join(root, 'public/try/picodeck_simulator.js'), 'utf8'),
     await readFile(join(root, 'public/try/picodeck_simulator.data')));
   await mkdir(join(root, 'src/data'), { recursive: true });
