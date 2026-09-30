@@ -2,13 +2,13 @@
 
 The PicoDeck website: landing page, docs, the browser simulator (`/try/`) and downloads. Astro + Starlight, deployed on Cloudflare Workers (static assets; `wrangler.jsonc`).
 
-Everything release-specific comes from the latest [PicoDeck/picodeck](https://github.com/PicoDeck/picodeck) release. `npm run build` first runs `scripts/fetch-release.mjs`, which:
+Everything release-specific comes from the latest [PicoDeck/picodeck](https://github.com/PicoDeck/picodeck) release, except the browser demo, which comes from the latest [PicoDeck/web-sim](https://github.com/PicoDeck/web-sim) release. `npm run build` first runs `scripts/fetch-release.mjs`, which:
 
 - unzips `picodeck-docs.zip` into `src/content/docs/docs/` (the Markdown in the picodeck repo's `docs/`, plus `_sidebar.json`)
-- unzips `picodeck-web-sim.zip` into `public/try/`: the simulator (`.js`, `.wasm`, `.data`), its page glue `shell.js`, and `launcher.png`, the launcher captured from the simulator in PicoDeck's release CI, which the home page shows and boots on a click. The page around the simulator is `src/pages/try/index.astro`, so `/try/` changes with a site deploy; `/try/?app=<folder>` starts that app
-- writes `src/data/release.json` for the download page
+- unzips web-sim's `picodeck-web-sim.zip` into `public/try/`: the simulator (`.js`, `.wasm`, `.data`), its page glue `shell.js`, and `launcher.png`, the launcher captured from the simulator by web-sim's browser tests, which the home page shows and boots on a click. The page around the simulator is `src/pages/try/index.astro`, so `/try/` changes with a site deploy; `/try/?app=<folder>` starts that app
+- writes `src/data/release.json` for the download page (with `web_sim`: the demo's release tag and page)
 
-The build fails if the release lacks either zip, or the web simulator zip lacks any of those files. The picodeck release workflow calls a Pages deploy hook, so every release rebuilds the site; pushes here rebuild it too.
+The build fails if the PicoDeck release lacks its docs zip or firmware, the web-sim release lacks its zip, or that zip lacks any of those files. Both repos' release workflows call a Pages deploy hook, so every release of either rebuilds the site; pushes here rebuild it too.
 
 ```
 npm install

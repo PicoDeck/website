@@ -1,28 +1,32 @@
 #!/usr/bin/env node
-// Prebuild: pull the latest PicoDeck release's docs, web simulator and
-// download metadata into the site. Design: PicoDeck/picodeck
-// specs/2026-09-26-picodeck-rename-design.md, section 7.
+// Prebuild: pull the latest PicoDeck release's docs and download metadata, and
+// the latest PicoDeck/web-sim release's browser demo, into the site. Designs:
+// PicoDeck/picodeck specs/2026-09-26-picodeck-rename-design.md, section 7, and
+// specs/2026-09-30-web-sim-split-design.md.
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
 
 export const REPO = 'PicoDeck/picodeck';
-export const REQUIRED = ['picodeck-docs.zip', 'picodeck-web-sim.zip', 'picodeck.uf2'];
+export const REQUIRED = ['picodeck-docs.zip', 'picodeck.uf2'];
 export const OPTIONAL = ['picodeck.sha256', 'picodeck-simulator-linux'];
+// The browser demo releases on its own schedule from its own repo.
+export const WEB_SIM_REPO = 'PicoDeck/web-sim';
+export const WEB_SIM = { repo: WEB_SIM_REPO, required: ['picodeck-web-sim.zip'], optional: [] };
 
-export function summarize(release) {
+export function summarize(release, { repo = REPO, required = REQUIRED, optional = OPTIONAL } = {}) {
   const byName = new Map((release.assets ?? []).map((a) => [a.name, a.browser_download_url]));
-  const missing = REQUIRED.filter((n) => !byName.has(n));
-  if (missing.length) throw new Error(`release ${release.tag_name ?? '?'} is missing ${missing.join(', ')}`);
+  const missing = required.filter((n) => !byName.has(n));
+  if (missing.length) throw new Error(`${repo} release ${release.tag_name ?? '?'} is missing ${missing.join(', ')}`);
   const assets = {};
-  for (const n of [...REQUIRED, ...OPTIONAL]) if (byName.has(n)) assets[n] = byName.get(n);
+  for (const n of [...required, ...optional]) if (byName.has(n)) assets[n] = byName.get(n);
   return {
     tag: release.tag_name,
     name: release.name || release.tag_name,
     published: release.published_at ?? null,
     notes: release.body ?? '',
-    url: release.html_url ?? `https://github.com/${REPO}/releases`,
+    url: release.html_url ?? `https://github.com/${repo}/releases`,
     assets,
   };
 }
@@ -55,19 +59,22 @@ async function get(url, token) {
 }
 
 export async function main({ root = process.cwd(), token = process.env.GITHUB_TOKEN } = {}) {
-  const release = await (await get(`https://api.github.com/repos/${REPO}/releases/latest`, token)).json();
-  const info = summarize(release);
-  const zipOf = async (name) => (await get(info.assets[name])).arrayBuffer();
-  const docs = await extractZip(await zipOf('picodeck-docs.zip'), join(root, 'src/content/docs/docs'), ['index.md', '_sidebar.json']);
+  const latest = async (repo) => (await get(`https://api.github.com/repos/${repo}/releases/latest`, token)).json();
+  const info = summarize(await latest(REPO));
+  const demo = summarize(await latest(WEB_SIM_REPO), WEB_SIM);
+  const zipOf = async (url) => (await get(url)).arrayBuffer();
+  const docs = await extractZip(await zipOf(info.assets['picodeck-docs.zip']), join(root, 'src/content/docs/docs'),
+    ['index.md', '_sidebar.json']);
   // The simulator, its page glue (shell.js) and a screenshot of its launcher (the home
-  // page's screen). The page around them is the site's own (src/pages/try/index.astro),
-  // so /try/ changes with a website deploy rather than a PicoDeck release.
-  const sim = await extractZip(await zipOf('picodeck-web-sim.zip'), join(root, 'public/try'),
+  // page's screen), from PicoDeck/web-sim. The page around them is the site's own
+  // (src/pages/try/index.astro), so /try/ changes with a website deploy.
+  const sim = await extractZip(await zipOf(demo.assets['picodeck-web-sim.zip']), join(root, 'public/try'),
     ['picodeck_simulator.js', 'picodeck_simulator.wasm', 'picodeck_simulator.data', 'shell.js', 'launcher.png'],
-    { skip: ['index.html'] });
+    { skip: ['index.html', 'version.json'] });
   await mkdir(join(root, 'src/data'), { recursive: true });
+  info.web_sim = { tag: demo.tag, url: demo.url };
   await writeFile(join(root, 'src/data/release.json'), `${JSON.stringify(info, null, 2)}\n`);
-  console.log(`release ${info.tag}: ${docs} doc files, ${sim} simulator files`);
+  console.log(`release ${info.tag}: ${docs} doc files; web-sim ${demo.tag}: ${sim} simulator files`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
