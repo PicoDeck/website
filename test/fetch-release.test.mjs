@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { zipSync, strToU8 } from 'fflate';
-import { summarize, extractZip, safeEntryPath } from '../scripts/fetch-release.mjs';
+import { summarize, extractZip, safeEntryPath, WEB_SIM } from '../scripts/fetch-release.mjs';
 
 const asset = (name) => ({ name, browser_download_url: `https://example.test/${name}` });
 
@@ -16,13 +16,25 @@ test('summarize keeps the known assets', () => {
   });
   assert.equal(info.tag, 'v0.3.0');
   assert.equal(info.name, 'v0.3.0');
-  assert.deepEqual(Object.keys(info.assets).sort(),
-    ['picodeck-docs.zip', 'picodeck-web-sim.zip', 'picodeck.sha256', 'picodeck.uf2']);
+  assert.deepEqual(Object.keys(info.assets).sort(), ['picodeck-docs.zip', 'picodeck.sha256', 'picodeck.uf2']);
 });
 
-test('summarize fails loudly when docs or the simulator are missing', () => {
+test('summarize fails loudly when the docs are missing', () => {
   assert.throws(() => summarize({ tag_name: 'v0.3.0', assets: [asset('picodeck.uf2')] }),
-    /missing picodeck-docs.zip, picodeck-web-sim.zip/);
+    /PicoDeck\/picodeck release v0.3.0 is missing picodeck-docs.zip/);
+});
+
+test('a PicoDeck release no longer needs the browser demo', () => {
+  const info = summarize({ tag_name: 'v0.5.0', assets: ['picodeck-docs.zip', 'picodeck.uf2'].map(asset) });
+  assert.deepEqual(Object.keys(info.assets).sort(), ['picodeck-docs.zip', 'picodeck.uf2']);
+});
+
+test('the browser demo comes from a PicoDeck/web-sim release', () => {
+  const demo = summarize({ tag_name: 'v1.0.0', assets: ['picodeck-web-sim.zip'].map(asset) }, WEB_SIM);
+  assert.deepEqual(Object.keys(demo.assets), ['picodeck-web-sim.zip']);
+  assert.equal(demo.url, 'https://github.com/PicoDeck/web-sim/releases');
+  assert.throws(() => summarize({ tag_name: 'v1.0.1', assets: [] }, WEB_SIM),
+    /PicoDeck\/web-sim release v1.0.1 is missing picodeck-web-sim.zip/);
 });
 
 test('extractZip writes the files and requires the named entries', async () => {
