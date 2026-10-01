@@ -6,7 +6,7 @@ Everything release-specific comes from the latest [PicoDeck/picodeck](https://gi
 
 - unzips `picodeck-docs.zip` into `src/content/docs/docs/` (the Markdown in the picodeck repo's `docs/`, plus `_sidebar.json`)
 - unzips web-sim's `picodeck-web-sim.zip` into `public/try/`: the simulator (`.js`, `.wasm`, `.data`), its page glue `shell.js`, and `launcher.png`, the launcher captured from the simulator by web-sim's browser tests, which the home page shows and boots on a click. The page around the simulator is `src/pages/try/index.astro`, so `/try/` changes with a site deploy; `/try/?app=<folder>` starts that app
-- writes `src/data/release.json` for the download page (with `web_sim`: the demo's release tag and page)
+- writes `src/data/release.json`, recording under `web_sim` which web-sim release the demo came from, so the build shows which demo it took
 
 The build fails if the PicoDeck release lacks its docs zip or firmware, the web-sim release lacks its zip, or that zip lacks any of those files. Both repos' release workflows call a Pages deploy hook, so every release of either rebuilds the site; pushes here rebuild it too.
 
