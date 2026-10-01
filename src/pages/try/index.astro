@@ -1,8 +1,9 @@
 ---
 // /try/: the browser simulator in the site's layout. The simulator and its page
-// glue (picodeck_simulator.js, .wasm, .data, shell.js) come from the latest PicoDeck
-// release via scripts/fetch-release.mjs; this page replaces the release's own
-// index.html, so the page itself changes with a website deploy.
+// glue (picodeck_simulator.js, .wasm, .data, shell.js) come from PicoDeck/web-sim's
+// latest release (picodeck-web-sim.zip) via scripts/fetch-release.mjs; this page
+// replaces the release's own index.html, so the page itself changes with a website
+// deploy.
 import Site from '../../layouts/Site.astro';
 ---
 <Site title="Try PicoDeck" current="try" description="Run the PicoDeck launcher and Lua apps in your browser, no install needed.">
@@ -54,7 +55,7 @@ import Site from '../../layouts/Site.astro';
 <input id="textsink" type="text" autocomplete="off" autocorrect="off"
        autocapitalize="off" spellcheck="false" aria-hidden="true" tabindex="-1">
 
-<!-- The page glue ships with the simulator (PicoDeck's simulator/web/shell.js). -->
+<!-- The page glue ships with the simulator (PicoDeck/web-sim's page/shell.js). -->
 <script is:inline src="/try/shell.js"></script>
 <script is:inline async src="/try/picodeck_simulator.js"></script>
 </Site>
