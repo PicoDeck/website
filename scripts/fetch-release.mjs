@@ -60,8 +60,9 @@ async function get(url, token) {
 
 export async function main({ root = process.cwd(), token = process.env.GITHUB_TOKEN } = {}) {
   const latest = async (repo) => (await get(`https://api.github.com/repos/${repo}/releases/latest`, token)).json();
-  const info = summarize(await latest(REPO));
-  const demo = summarize(await latest(WEB_SIM_REPO), WEB_SIM);
+  const [infoRelease, demoRelease] = await Promise.all([latest(REPO), latest(WEB_SIM_REPO)]);
+  const info = summarize(infoRelease);
+  const demo = summarize(demoRelease, WEB_SIM);
   const zipOf = async (url) => (await get(url)).arrayBuffer();
   const docs = await extractZip(await zipOf(info.assets['picodeck-docs.zip']), join(root, 'src/content/docs/docs'),
     ['index.md', '_sidebar.json']);
