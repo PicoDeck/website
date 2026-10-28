@@ -5,6 +5,7 @@ import Default from '@astrojs/starlight/components/SocialIcons.astro';
 import release from '../../data/release.json';
 ---
 <nav class="docs-nav" aria-label="Site">
+  <a class="docs-wide" href="/features/">Features</a>
   <a href="/try/">Try it</a>
   <a href="https://store.picodeck.net/">Store</a>
   <a class="docs-status" href="/download/">{release.tag}</a>
@@ -16,4 +17,6 @@ import release from '../../data/release.json';
   .docs-nav a { height: 36px; display: flex; align-items: center; padding: 0 10px; white-space: nowrap; font: 400 16px/1 var(--pd-pixel); -webkit-font-smoothing: none; color: #fff; text-decoration: none; }
   .docs-nav a:hover { background: var(--pd-btn-hover); }
   .docs-nav .docs-status { color: var(--pd-status); }
+  /* Beside the search box it only fits from about 940px. */
+  @media (max-width: 959px) { .docs-nav .docs-wide { display: none; } }
 </style>

@@ -6,7 +6,7 @@ import release from '../data/release.json';
 interface Props {
   title: string;
   description?: string;
-  current?: 'try' | 'download';
+  current?: 'features' | 'try' | 'download';
 }
 const {
   title,
@@ -31,6 +31,7 @@ const {
       <div class="pd-wrap">
         <a class="pd-brand" href="/">PicoDeck</a>
         <nav class="pd-nav" aria-label="Site">
+          <a class="nav-wide" href="/features/" aria-current={current === 'features' ? 'page' : undefined}>Features</a>
           <a href="/try/" aria-current={current === 'try' ? 'page' : undefined}>Try it</a>
           <a href="/docs/">Docs</a>
           <a href="https://store.picodeck.net/">Store</a>
@@ -45,6 +46,7 @@ const {
       <div class="pd-wrap">
         <span class="pd-footer-note">PicoDeck {release.tag}</span>
         <nav aria-label="Footer">
+          <a href="/features/">Features</a>
           <a href="/docs/">Docs</a>
           <a href="https://store.picodeck.net/">App Store</a>
           <a href="/download/">Download</a>
@@ -54,3 +56,8 @@ const {
     </footer>
   </body>
 </html>
+
+<style>
+  /* A phone's title bar has no room for it; the footer links it there. */
+  @media (max-width: 719px) { .pd-nav .nav-wide { display: none; } }
+</style>

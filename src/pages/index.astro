@@ -25,6 +25,16 @@ const mainLua = `<span class="tk">local</span> pc = picocalc
   pc.sys.sleep(<span class="tn">16</span>)
 <span class="tk">end</span>`;
 
+// The big ones, in the colours of their sections on /features/, which has the rest.
+const highlights = [
+  ['games', 'Graphics', 'Sprites, tilemaps, flat-shaded 3D, character grids with shaders, and video, on a 320×320 screen at 60 frames a second.'],
+  ['demos', 'Sound', 'WAV, MP3 and QOA streamed from the SD card, and MOD tracker music, through one mixer that plays them all at once.'],
+  ['emulators', 'Gamepads', 'A gamepad players rebind in the system menu, and Bluetooth controllers paired from Settings.'],
+  ['network', 'Wi-Fi', 'HTTPS that checks certificates, TCP and TLS sockets, and crypto, for apps that talk to the internet.'],
+  ['system', 'App Store and updates', 'Install apps over Wi-Fi, and firmware updates that are checked against a signature before they\'re flashed.'],
+  ['tools', 'Simulators', 'Run apps on your computer or in the browser, and drive a real device over USB.'],
+];
+
 const categories = [
   ['games', 'Games', 'block.exe, C-Dogs, DOOM, Minesweeper, Neurogram, Snake'],
   ['tools', 'Tools', 'Calculator, DOS/86, File Manager, PicoForge, Text Editor'],
@@ -48,6 +58,22 @@ const categories = [
     <div class="screen">
       <LauncherShot />
       <p class="caption">The launcher from the latest release, with the apps in the browser version. Click or tap the screen to start the simulator.</p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="pd-wrap">
+      <h2 class="pd-heading">What it does</h2>
+      <p class="band-lede">The firmware does the heavy lifting in C, for every app to use.</p>
+      <ul class="does">
+        {highlights.map(([id, name, text]) => (
+          <li class={`pd-c-${id}`}>
+            <h3 class="pd-label"><span class="pd-dot" />{name}</h3>
+            <p>{text}</p>
+          </li>
+        ))}
+      </ul>
+      <a class="pd-btn does-more" href="/features/">All features</a>
     </div>
   </section>
 
@@ -137,6 +163,12 @@ const categories = [
   .files :global(.tc) { color: var(--pd-dim); }
   .files :global(.tj) { color: var(--pd-all); }
 
+  .does { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 56px; }
+  .does li { padding: 22px 0 28px; border-top: 2px solid var(--pd-rule); }
+  .does h3 { display: flex; align-items: center; gap: 16px; color: var(--pd-c); }
+  .does p { margin-top: 10px; max-width: 30em; }
+  .does-more { margin-top: 20px; }
+
   .cat-rows { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 56px; }
   .cat-rows li { display: grid; grid-template-columns: 14px 136px minmax(0, 1fr); column-gap: 16px; align-items: start; padding: 18px 0; border-top: 2px solid var(--pd-rule); }
   .cat-rows li:nth-last-child(-n + 2) { border-bottom: 2px solid var(--pd-rule); }
@@ -151,6 +183,7 @@ const categories = [
 
   @media (max-width: 1399px) { .hero h1 { font-size: 40px; line-height: 48px; } }
   @media (max-width: 1199px) {
+    .does { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hero { grid-template-columns: minmax(0, 1fr); gap: 48px; }
     .hero h1 { max-width: 18ch; }
@@ -158,6 +191,7 @@ const categories = [
     .split-text { position: static; }
   }
   @media (max-width: 899px) {
+    .does { grid-template-columns: minmax(0, 1fr); }
     .cat-rows { grid-template-columns: minmax(0, 1fr); }
     .cat-rows li:nth-last-child(2) { border-bottom: 0; }
     .steps { grid-template-columns: minmax(0, 1fr); gap: 48px; }
