@@ -1,0 +1,200 @@
+---
+import Site from '../layouts/Site.astro';
+import release from '../data/release.json';
+
+// Each group takes a launcher category colour. Texts are HTML, for their <code>.
+type Feature = { name: string; text: string; links?: [string, string][] };
+type Group = { id: string; colour: string; name: string; lede: string; items: Feature[] };
+
+const groups: Group[] = [
+  {
+    id: 'apps', colour: 'all', name: 'Apps',
+    lede: 'An app is a folder on the SD card. Write it in Lua, or in C and C++ when you need the speed.',
+    items: [
+      { name: 'Lua 5.4', text: 'Apps run in a sandboxed Lua 5.4 runtime with a 6 MB heap in PSRAM, and reach the hardware through one <code>picocalc</code> API. There\'s nothing to compile.', links: [['/docs/creating-your-first-app/', 'Write your first app']] },
+      { name: 'Native apps', text: 'Emulators, ports and CPU-heavy renderers are position-independent ELF binaries. They load from the SD card into PSRAM and get the same API as Lua, through a C table.', links: [['/docs/native-loading/', 'Native apps']] },
+      { name: 'A sandbox per app', text: 'An app reads its own folder and writes its own data folder. Anything more, such as the network or the whole card, is a requirement it declares in <code>app.json</code>.', links: [['/docs/global-variables-and-permissions/', 'App requirements']] },
+      { name: 'Saves and settings', text: 'Per-app config and save files survive reboots, and an app can add up to four items of its own to the system menu.', links: [['/docs/api-system-and-config/', 'System and config'], ['/docs/api-game/', 'Save files']] },
+      { name: 'Shared libraries', text: 'Libraries in <code>/system/lib/</code> load with one call. Download streams a file from the web to the card; Panels turns a Lua table into an interactive comic.', links: [['/docs/library-download/', 'Download'], ['/docs/library-panels/', 'Panels']] },
+    ],
+  },
+  {
+    id: 'graphics', colour: 'games', name: 'Graphics',
+    lede: 'A 320×320 screen, double-buffered at 60 frames a second, with 2D, 3D, text grids and video built in.',
+    items: [
+      { name: 'Images and sprites', text: 'Load BMP, JPEG, PNG and GIF images, draw them as sprites, spritesheets, animations and tilemaps, and finish the frame with framebuffer effects.', links: [['/docs/api-display-and-graphics/', 'Display and graphics']] },
+      { name: 'A game framework', text: 'A 2D camera that follows, zooms and shakes, a scene manager, particles and save files, so a new game starts with the plumbing done.', links: [['/docs/api-game/', 'Game framework']] },
+      { name: '3D', text: '<code>gfx3d</code> draws flat-shaded, low-poly scenes with a camera, a light, fog, sky bands and camera-facing sprites. Lua builds the meshes; transform, lighting and clipping run in C.', links: [['/docs/api-3d/', '3D']] },
+      { name: 'Character grids', text: '<code>picocalc.chargrid</code> draws a full screen of character cells in about 3 ms, with the xterm-256 palette, UTF-8 text and your own glyphs. Its shader language colours whole grids every frame.', links: [['/docs/api-chargrid/', 'Chargrid and shaders']] },
+      { name: 'Video', text: 'MJPEG video from AVI files on the SD card, with an MP3 soundtrack decoded on the second core.', links: [['/docs/api-video/', 'Video']] },
+      { name: 'Terminal', text: 'A terminal emulator widget with scrollback, colours, word wrap and line numbers, for consoles, editors and remote shells.', links: [['/docs/api-terminal/', 'Terminal']] },
+    ],
+  },
+  {
+    id: 'sound', colour: 'demos', name: 'Sound',
+    lede: 'One mixer plays everything at 44.1 kHz, so sound effects play over the music.',
+    items: [
+      { name: 'Samples and streams', text: 'WAV samples play from memory. WAV, QOA and MP3 files stream from the SD card without loading the whole file.', links: [['/docs/api-audio-and-sound/', 'Audio and sound']] },
+      { name: 'Tracker music', text: 'ProTracker MOD files with 1 to 32 channels, rendered on the second core.', links: [['/docs/api-modplayer/', 'MOD player']] },
+      { name: 'Tones and raw audio', text: 'Play a tone with one call, or feed your own PCM samples to the output stream.', links: [['/docs/api-audio-and-sound/', 'Audio and sound']] },
+    ],
+  },
+  {
+    id: 'controls', colour: 'emulators', name: 'Controls',
+    lede: 'The PicoCalc\'s keyboard, a gamepad players can rebind, and Bluetooth controllers.',
+    items: [
+      { name: 'The keyboard', text: 'Every key, typed characters and key events. The keyboard is read in the background, so a key press reaches the app within about 22 ms.', links: [['/docs/api-input/', 'Input']] },
+      { name: 'A rebindable gamepad', text: 'Games read a 12-button gamepad instead of raw keys. Players bind each button to two keys in the system menu, and the game needs no code for it.', links: [['/docs/api-gamepad/', 'Gamepad']] },
+      { name: 'Bluetooth controllers', text: 'Pair a Classic HID gamepad from Settings → Bluetooth. It presses the same buttons as the keys, and its Home button opens the system menu.', links: [['/docs/api-gamepad/#bluetooth-controllers', 'Bluetooth controllers']] },
+    ],
+  },
+  {
+    id: 'network', colour: 'network', name: 'Network',
+    lede: 'Wi-Fi on the Pico Plus 2 W, with TLS that checks certificates.',
+    items: [
+      { name: 'HTTP and HTTPS', text: 'An HTTP client with up to 8 connections at once. HTTPS verifies the server\'s certificate.', links: [['/docs/api-network-and-wifi/', 'Network and Wi-Fi']] },
+      { name: 'TCP and TLS sockets', text: 'Non-blocking sockets, with or without TLS, run by a network stack on the second core. An app can pin a self-signed server by its certificate\'s fingerprint.', links: [['/docs/api-tcp/', 'TCP']] },
+      { name: 'Crypto', text: 'Hashing, encryption, key exchange and signature verification, with random bytes from a hardware-seeded generator.', links: [['/docs/api-crypto/', 'Crypto']] },
+      { name: 'JSON and ZIP', text: 'Encode and decode JSON, and read or extract ZIP archives, so an app can ship its assets as one file.', links: [['/docs/api-json/', 'JSON'], ['/docs/api-zip/', 'ZIP']] },
+    ],
+  },
+  {
+    id: 'system', colour: 'system', name: 'System',
+    lede: 'The launcher, and the parts of the OS every app shares.',
+    items: [
+      { name: 'The launcher', text: 'Apps sorted into six categories, with 24×24 icons and a status header for Wi-Fi, the battery and the clock.', links: [['/try/', 'Try it in your browser']] },
+      { name: 'The system menu', text: 'Sym opens it over any app: brightness, screenshots, USB Disk Mode and Exit App, with Settings for the controls, Bluetooth, the battery percentage and an FPS counter.', links: [['/docs/api-performance/', 'The FPS counter']] },
+      { name: 'App Store', text: 'Browse and install apps over Wi-Fi on the device. A public GitHub repository tagged <code>picodeck-app</code> is listed within 30 minutes, with no review.', links: [['https://store.picodeck.net/', 'Browse the store'], ['/docs/publishing-apps/', 'Publish an app']] },
+      { name: 'System Update', text: 'Installs new releases over Wi-Fi. Each image must match a signature checked against a key built into the firmware, before anything is flashed and again at boot.', links: [['/download/', 'Release notes']] },
+      { name: 'USB Disk Mode', text: 'Puts the SD card on your computer as a USB drive, so you can copy apps over without taking the card out.' },
+      { name: 'Crash logs', text: 'CPU faults and Lua errors are shown on screen and written to the SD card. After three failed boots in a row, PicoDeck halts instead of rebooting forever.', links: [['/docs/crash-logging-and-watchdog/', 'Crash logging and watchdog']] },
+      { name: 'Fast boot', text: 'A boot animation plays from first light while the system starts underneath it: about 3.1 s to the launcher after a warm reboot.' },
+    ],
+  },
+  {
+    id: 'developers', colour: 'tools', name: 'Developers',
+    lede: 'Run and test apps without the device, then watch them on it.',
+    items: [
+      { name: 'Browser simulator', text: 'The launcher and Lua apps, compiled to WebAssembly, with the keyboard and browser gamepads.', links: [['/try/', 'Try it']] },
+      { name: 'Desktop simulator', text: 'A Linux build that runs Lua apps on the device\'s own bridge and native apps under a CPU emulator, with a control socket for scripted tests.', links: [['/docs/simulator-and-testing/', 'Simulator and testing'], ['/download/', 'Download']] },
+      { name: 'USB dev console', text: 'Over USB serial, launch and list apps, move files on the card and profile a running app. An MCP server lets an AI agent drive the device the same way.', links: [['/docs/simulator-and-testing/#dev-commands-usb-serial', 'Dev commands']] },
+      { name: 'Lua SDK reference', text: 'Every <code>picocalc</code> function, documented with its parameters, return values and examples.', links: [['/docs/lua-sdk-reference/', 'Lua SDK reference']] },
+    ],
+  },
+];
+---
+<Site title="PicoDeck features" description="What PicoDeck gives the ClockworkPi PicoCalc: Lua and native apps, 2D and 3D graphics, sound, gamepads, Wi-Fi, an App Store and signed updates." current="features">
+  <div class="pd-wrap intro">
+    <h1 class="pd-title">Features</h1>
+    <p class="lede">What PicoDeck gives the PicoCalc, from the launcher to the APIs apps are written against. The <a href="/download/">{release.tag} release notes</a> list what's new.</p>
+  </div>
+
+  <nav class="pd-tabbar jump" aria-label="Features">
+    <div class="pd-wrap">
+      <div class="pd-tabs" data-jump>
+        {groups.map((g) => (
+          <a class={`pd-tab pd-c-${g.colour}`} href={`#${g.id}`}><span class="pd-dot" /><span class="pd-tab-label">{g.name}</span></a>
+        ))}
+      </div>
+    </div>
+  </nav>
+
+  {groups.map((g) => (
+    <section class={`band pd-c-${g.colour}`} id={g.id} aria-labelledby={`${g.id}-h`}>
+      <div class="pd-wrap split">
+        <div class="split-text">
+          <h2 class="pd-heading" id={`${g.id}-h`}><span class="pd-dot" />{g.name}</h2>
+          <p class="band-lede">{g.lede}</p>
+        </div>
+        <ul class="features">
+          {g.items.map((f) => (
+            <li>
+              <h3 class="pd-label">{f.name}</h3>
+              <p set:html={f.text} />
+              {f.links && (
+                <p class="links">{f.links.map(([href, label]) => <a href={href}>{label}</a>)}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  ))}
+
+  <section class="band end">
+    <div class="pd-wrap">
+      <h2 class="pd-heading">See it running</h2>
+      <p class="band-lede">The browser version runs the launcher and Lua apps. On real hardware, PicoDeck needs a PicoCalc fitted with a <a href="https://shop.pimoroni.com/products/pimoroni-pico-plus-2-w">Pimoroni Pico Plus 2 W</a>.</p>
+      <div class="pd-actions">
+        <a class="pd-btn pd-btn-primary" href="/try/">Try it in your browser</a>
+        <a class="pd-btn" href="/download/">Download {release.tag}</a>
+      </div>
+    </div>
+  </section>
+</Site>
+
+<script>
+  // Mark the tab of the section under the tab bar, like the launcher's selected category.
+  const tabs = [...document.querySelectorAll<HTMLAnchorElement>('[data-jump] a')];
+  const bar = document.querySelector<HTMLElement>('.jump');
+  const sections = tabs.map((a) => document.querySelector<HTMLElement>(a.hash));
+  let current: HTMLAnchorElement | undefined;
+  const update = () => {
+    const line = (bar?.getBoundingClientRect().bottom ?? 0) + 120;
+    const atEnd = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+    const i = atEnd ? sections.length - 1 : sections.findLastIndex((s) => s && s.getBoundingClientRect().top <= line);
+    const next = tabs[i];
+    if (next === current) return;
+    current?.removeAttribute('aria-current');
+    next?.setAttribute('aria-current', 'true');
+    current = next;
+    // On a phone the strip scrolls sideways: keep the marked tab in view.
+    const strip = next?.parentElement;
+    if (!next || !strip) return;
+    const t = next.getBoundingClientRect(), s = strip.getBoundingClientRect();
+    if (t.left < s.left || t.right > s.right) strip.scrollBy({ left: t.left - s.left - 16 });
+  };
+  let queued = false;
+  addEventListener('scroll', () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; update(); });
+  }, { passive: true });
+  update();
+</script>
+
+<style>
+  .intro { padding-block: 56px 48px; }
+  .lede { margin-top: 20px; font-size: 20px; line-height: 1.5; max-width: 34em; }
+
+  /* The launcher's category bar, under the title bar. */
+  .jump { position: sticky; top: var(--pd-titlebar-h); z-index: 9; }
+  .jump .pd-tab[aria-current="true"] { background: var(--pd-tab); box-shadow: inset 0 -4px 0 var(--pd-c); }
+
+  .band { border-top: 2px solid var(--pd-rule); padding-block: 72px; scroll-margin-top: 36px; }
+  .jump + .band { border-top: 0; }
+  .band-lede { margin-top: 20px; max-width: 30em; }
+  .split { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 72px; align-items: start; }
+  .split-text { position: sticky; top: calc(var(--pd-titlebar-h) + 60px + 48px); }
+  .split-text .pd-heading { display: flex; align-items: center; gap: 16px; color: var(--pd-c); }
+
+  .features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+  .features li { padding-block: 24px; border-top: 2px solid var(--pd-rule); }
+  .features li:nth-child(-n + 2) { border-top: 0; padding-top: 4px; }
+  .features p { margin-top: 10px; }
+  .features .links { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 15px; }
+
+  .end .pd-actions { margin-top: 36px; }
+
+  @media (max-width: 1199px) {
+    .split { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .split-text { position: static; }
+  }
+  @media (max-width: 719px) {
+    .intro { padding-block: 32px 32px; }
+    .lede { font-size: 18px; }
+    .band { padding-block: 56px; }
+    .features { grid-template-columns: minmax(0, 1fr); }
+    .features li:nth-child(2) { border-top: 2px solid var(--pd-rule); padding-top: 24px; }
+  }
+</style>
