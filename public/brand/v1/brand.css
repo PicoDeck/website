@@ -175,7 +175,8 @@ select.pd-field {
   flex: none; width: 48px; height: 48px; display: grid; place-items: center; object-fit: cover;
   background: var(--pd-c, var(--pd-system)); color: #fff; font: 400 16px/16px var(--pd-pixel); -webkit-font-smoothing: none;
 }
-img.pd-icon { background: var(--pd-navy); }
+/* The icon is pixel art scaled up 2x or 4x: keep the pixels square instead of smoothing them. */
+img.pd-icon { background: var(--pd-navy); image-rendering: pixelated; }
 .pd-icon-lg { width: 96px; height: 96px; font-size: 32px; line-height: 32px; --pd-cart-u: 4px; }
 
 /* The launcher's placeholder for an app without an icon (launcher.c draw_fallback_icon):
